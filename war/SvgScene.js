@@ -1057,8 +1057,11 @@ var SvgScene=function(){
 
 	var Interaction=(function(){
 		var connected=true;
-		var doSomething=function(){
-			if(connected){
+		var waiting=false;
+		var doSomething=function(callback1, callback2){
+			if(connected&&(!waiting)){
+				waiting=true;
+				if(callback1){callback1();}
 				var req=new XMLHttpRequest();
 				req.onload=function(){
 					//this.response
@@ -1098,6 +1101,8 @@ var SvgScene=function(){
 							win.document.write(response);
 						})(this.response);
 					}
+					waiting=false;
+					if(callback2){callback2();}
 				};
 				var s=sceneXml();
 				req.open("POST","/traceray2", true);
@@ -1113,6 +1118,37 @@ var SvgScene=function(){
 			connect: function(){connected=true;},
 			doSomething: doSomething,
 			updateHash: updateHash
+		};
+	})();
+
+	var Settings=(function(){
+		var resolutionOptions=[];
+		var currentResolution;
+		var makeResolutionOptions=function(){
+			var distance=function(v1,v2){return Math.abs(v1-v2);};
+			var initSmaller, initBigger, smaller, bigger, order, roundBigger, roundSmaller;
+			var threshold=0.4;
+			if(viewPort.w()<=viewPort.h()){
+				order=true;
+				initSmaller=viewPort.w();
+				initBigger=viewPort.h();
+			}else{
+				order=false;
+				initSmaller=viewPort.h();
+				initBigger=viewPort.w();
+			}
+			for(var i=1;i<5;i++){
+				smaller=initSmaller/i;
+				bigger=initBigger/i;
+				roundSmaller=Math.round(smaller);
+				roundBigger=Math.round(bigger);
+				if(distance(smaller, roundSmaller)<threshold&&distance(bigger, roundBigger)<threshold){resolutionOptions.push(order?{w:roundSmaller,h:roundBigger}:{w:roundBigger,h:roundSmaller});}
+			}
+		};
+		var getResolutionOptions=function(){return resolutionOptions;}
+		return {
+			makeResolutionOptions:makeResolutionOptions,
+			getResolutionOptions:getResolutionOptions
 		};
 	})();
 
@@ -1523,7 +1559,14 @@ var SvgScene=function(){
 					var a=document.createElement('div');
 					a.setAttribute('style','position:relative;top:50%;transform: translateY(-50%);');
 					a.appendChild(document.createTextNode(text));
-					setInnerHTML=function(html){a.innerHTML=html;};
+					setInnerHTML=function(html){
+						if(typeof html=="string"){
+							a.innerHTML=html;
+						}else{
+							a.innerHTML="";
+							a.appendChild(html);
+						}
+					};
 					return a;
 				})());
 				var hideFrom=function(where_){where_.removeChild(button);};
@@ -1555,9 +1598,16 @@ var SvgScene=function(){
 				return table;
 			};
 
-			svgObject.controls.push(makeButton({left:0,bottom:0},'>',function(){
-				Interaction.doSomething();
-			}, function(){},0.75,{width:'15%',height:'10%'}).append(where));
+			svgObject.controls.push((function(){
+				var button=makeButton({left:0,bottom:0},'>',function(){
+				Interaction.doSomething(function(){button.setInnerHTML('...');},function(){button.setInnerHTML('>');});
+			}, function(){},0.75,{width:'15%',height:'10%'});
+				return button.append(where);
+			})());
+			// svgObject.controls.push(makeButton({left:0,bottom:0},'>',function(){
+
+			// 	Interaction.doSomething(function(){alert("OK");});
+			// }, function(){},0.75,{width:'15%',height:'10%'}).append(where));
 			var xmlDialog=(function(){
 				var xmlDialog=document.createElement('div');
 				xmlDialog.setAttribute('style', 'position:absolute;left:0;top:0;background-color:rgb(50,50,50);padding:0px;width:40%;height:90%;display:none;opacity:0.75');
@@ -2225,6 +2275,7 @@ var SvgScene=function(){
 				var h_=whereSvg.offsetHeight;
 				svgObject.setWh(w_,h_);
 				viewPort.setWh(w_,h_);
+				Settings.makeResolutionOptions();
 				if(things_&&things_.viewport){
 					(function(){
 						var viewport=things_.viewport;
@@ -2279,7 +2330,8 @@ var SvgScene=function(){
 		disconnect: function(){Interaction.disconnect();},
 		connect: function(){Interaction.connect();},
 		JSON: function(){return sceneJson();},
-		xml: function(){return sceneXml();}
+		xml: function(){return sceneXml();},
+		getResolutionOptions: function(){return Settings.getResolutionOptions();}
 	};
 	return sc;
 };
