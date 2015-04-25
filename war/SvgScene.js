@@ -437,11 +437,20 @@ var SvgScene=function(){
 			viewPoint=middleOfView.plus(viewPoint.minus(middleOfView).scale(r));
 			setNdvpmlt();
 		};
-		var toString=function(){
-			var s='<viewport w="'+w+'" h="'+h+'">';
+		var toString=function(resolution){
+			var s, w_, h_, topAxis_;
+			w_=w;
+			h_=h;
+			topAxis_=topAxis;
+			if(resolution){
+				w_=resolution.w;
+				h_=resolution.h;
+				topAxis_=topAxis_.unit().scale(leftAxis.norm()*h_/w_);
+			}
+			var s='<viewport w="'+w_+'" h="'+h_+'">';
 			s+='<lefttop x="'+leftTop.x()+'" y="'+leftTop.y()+'" z="'+leftTop.z()+'" />';
 			s+='<leftaxis x="'+leftAxis.x()+'" y="'+leftAxis.y()+'" z="'+leftAxis.z()+'" />';
-			s+='<topaxis x="'+topAxis.x()+'" y="'+topAxis.y()+'" z="'+topAxis.z()+'" />';
+			s+='<topaxis x="'+topAxis_.x()+'" y="'+topAxis_.y()+'" z="'+topAxis_.z()+'" />';
 			s+='<viewpoint x="'+viewPoint.x()+'" y="'+viewPoint.y()+'" z="'+viewPoint.z()+'" />';
 			s+='</viewport>';
 			return s;
@@ -1032,7 +1041,7 @@ var SvgScene=function(){
 			s+=spheres[i].toString();
 		}
 		s=s.replace(/"\d+?\.\d+?[eE]-\d+?"/g,"\"0\"");
-		return s+'</group>'+viewPort.toString()+'</scene>';
+		return s+'</group>'+viewPort.toString(Settings.getCurrentResolution())+'</scene>';
 	};
 
 	var sceneJson=function(){
@@ -1068,8 +1077,9 @@ var SvgScene=function(){
 					console.log(this.response.substr(0,3));
 					if(this.response.substr(0,3)==="ecf"){
 						(function(colorString){
-							var w=viewPort.w();
-							var h=viewPort.h();
+							var res=Settings.getCurrentResolution();
+							var w=res.w;
+							var h=res.h;
 							var win=window.open("","","width="+w+", height="+h);
 							var canvas=document.createElement('canvas');
 							canvas.setAttribute('width',w);
@@ -1125,30 +1135,26 @@ var SvgScene=function(){
 		var resolutionOptions=[];
 		var currentResolution;
 		var makeResolutionOptions=function(){
-			var distance=function(v1,v2){return Math.abs(v1-v2);};
-			var initSmaller, initBigger, smaller, bigger, order, roundBigger, roundSmaller;
-			var threshold=0.4;
-			if(viewPort.w()<=viewPort.h()){
-				order=true;
-				initSmaller=viewPort.w();
-				initBigger=viewPort.h();
-			}else{
-				order=false;
-				initSmaller=viewPort.h();
-				initBigger=viewPort.w();
+			var initW, initH, w,h, roundW, roundH;
+			initW=viewPort.w();
+			initH=viewPort.h();
+			for(var i=0;i<5;i++){
+				w=initW*Math.pow(0.75, i);
+				h=initH*Math.pow(0.75, i);
+				resolutionOptions.push({w:Math.round(w),h:Math.round(h)});
 			}
-			for(var i=1;i<5;i++){
-				smaller=initSmaller/i;
-				bigger=initBigger/i;
-				roundSmaller=Math.round(smaller);
-				roundBigger=Math.round(bigger);
-				if(distance(smaller, roundSmaller)<threshold&&distance(bigger, roundBigger)<threshold){resolutionOptions.push(order?{w:roundSmaller,h:roundBigger}:{w:roundBigger,h:roundSmaller});}
-			}
+			currentResolution=resolutionOptions[0];
 		};
 		var getResolutionOptions=function(){return resolutionOptions;}
+		var setResolutionOption=function(i){
+			if(i>=0&&i<getResolutionOptions.length){currentResolution=resolutionOptions[i];}
+		};
+		var getCurrentResolution=function(){return currentResolution;};
 		return {
 			makeResolutionOptions:makeResolutionOptions,
-			getResolutionOptions:getResolutionOptions
+			getResolutionOptions:getResolutionOptions,
+			setResolutionOption: setResolutionOption,
+			getCurrentResolution:getCurrentResolution
 		};
 	})();
 
@@ -1604,10 +1610,7 @@ var SvgScene=function(){
 			}, function(){},0.75,{width:'15%',height:'10%'});
 				return button.append(where);
 			})());
-			// svgObject.controls.push(makeButton({left:0,bottom:0},'>',function(){
-
-			// 	Interaction.doSomething(function(){alert("OK");});
-			// }, function(){},0.75,{width:'15%',height:'10%'}).append(where));
+			
 			var xmlDialog=(function(){
 				var xmlDialog=document.createElement('div');
 				xmlDialog.setAttribute('style', 'position:absolute;left:0;top:0;background-color:rgb(50,50,50);padding:0px;width:40%;height:90%;display:none;opacity:0.75');
@@ -1638,7 +1641,58 @@ var SvgScene=function(){
 			})();
 			svgObject.controls.push(xmlDialog);
 
-			//svgObject.controls.push(makeButton({left:'15%',bottom:0},'shapes', function(){shapeListDialog.showShapeList(sceneShapeList());}, function(){},0.75,{width:'15%',height:'10%'}).append(where));
+			svgObject.controls.push(makeButton({left:'45%',bottom:0},'settings', function(){settingsDialog.showSettingsList(settingsList());}, function(){},0.75,{width:'15%',height:'10%'}).append(where));
+			var settingsDialog=(function(){
+				var settingsDialog=document.createElement('div');
+				var onEdit=function(){};
+				settingsDialog.setAttribute('style','position:absolute;left:0;top:0;background-color: rgb(50,50,50);padding:0px;width:40%;height:90%;display:none;font-family:Arial;opacity:0.75');
+				var button=makeButton(null,'DONE',function(){settingsDialog.style.display='none';onEdit();}, function(){}, 1, {width:100,height:50}).setInnerHTML(Images["checkMark"]).getNode();
+				var button3=makeButton(null, 'CANCEL', function(){settingsDialog.style.display='none';}, function(){}, 1, {width:100,height:50}).setInnerHTML(Images["cross"]).getNode();
+				var text=document.createElement('div');
+				text.setAttribute('style','width:100%;height:100%;overflow:scroll;padding:0px;margin:0px');
+				var table=makeTable([[text],[makeTable([[button,button3]])]],['90%','10%']);
+				settingsDialog.appendChild(table);
+				var showSettingsList=function(table){
+					settingsDialog.style.display="initial";
+					text.innerHTML="";
+					text.appendChild(table.table());
+					onEdit=function(){
+						var onEdits=table.onEdits();
+						for(var i=0;i<onEdits.length;i++){
+							onEdits[i]();
+						}
+						drawThings();
+					};
+				};
+				var append=function(thing){
+					settingsDialog.appendChild(thing);
+				};
+				var remove=function(thing){settingsDialog.removeChild(thing);};
+				var hideFrom=function(where_){where_.removeChild(settingsDialog);};
+				where.appendChild(settingsDialog);
+				return {showSettingsList: showSettingsList, append: append, remove: remove, hideFrom:hideFrom};
+			})();
+			svgObject.controls.push(settingsDialog);
+
+			var settingsList=function(){
+				var makeResolutionEditor=function(){
+					var row=document.createTextNode('hoi');
+					return {row:row,onEdit:function(){}};
+				};
+				var rows=[];
+				var onEdits=[];
+				var row;
+				row=makeResolutionEditor();
+				onEdits.push(row.onEdit);
+				rows.push(row.row);
+				var table=document.createElement('div');
+				table.setAttribute('style','width:100%;height:100%');
+				for(var i=0;i<rows.length;i++){
+					table.appendChild(rows[i]);
+				}
+				return {table: function(){return table;}, onEdits: function(){return onEdits;}};
+			};
+
 			svgObject.controls.push(makeButton({left:'15%',bottom:0},'shapes', function(){shapeListDialog.showShapeList(sceneShapeList());}, function(){},0.75,{width:'15%',height:'10%'}).append(where).setInnerHTML(Images["pencil"]));
 			var shapeListDialog=(function(){
 				var shapeListDialog=document.createElement('div');
@@ -2035,7 +2089,7 @@ var SvgScene=function(){
 				return {table: function(){return table;}, onEdits: function(){return onEdits;}};
 			};
 
-			//svgObject.controls.push(makeButton({left:'30%',bottom:0},'json',function(){jsonDialog.showJson(sceneJson());}, function(){},0.75,{width:'15%',height:'10%'}).append(where));
+			
 			var jsonDialog=(function(){
 				var jsonDialog=document.createElement('div');
 				jsonDialog.setAttribute('style', 'position:absolute;left:0;top:0;background-color:rgb(50,50,50);padding:0px;width:40%;height:90%;display:none;opacity:0.75');
