@@ -1134,6 +1134,7 @@ var SvgScene=function(){
 	var Settings=(function(){
 		var resolutionOptions=[];
 		var currentResolution;
+		var currentResolutionIndex;
 		var makeResolutionOptions=function(){
 			var initW, initH, w,h, roundW, roundH;
 			initW=viewPort.w();
@@ -1143,18 +1144,24 @@ var SvgScene=function(){
 				h=initH*Math.pow(0.75, i);
 				resolutionOptions.push({w:Math.round(w),h:Math.round(h)});
 			}
-			currentResolution=resolutionOptions[0];
+			currentResolutionIndex=resolutionOptions.length-1;
+			currentResolution=resolutionOptions[currentResolutionIndex];
 		};
 		var getResolutionOptions=function(){return resolutionOptions;}
 		var setResolutionOption=function(i){
-			if(i>=0&&i<getResolutionOptions.length){currentResolution=resolutionOptions[i];}
+			if(i>=0&&i<resolutionOptions.length){
+				currentResolutionIndex=i;
+				currentResolution=resolutionOptions[i];
+			}
 		};
 		var getCurrentResolution=function(){return currentResolution;};
+		var getCurrentResolutionIndex=function(){return currentResolutionIndex;};
 		return {
 			makeResolutionOptions:makeResolutionOptions,
 			getResolutionOptions:getResolutionOptions,
 			setResolutionOption: setResolutionOption,
-			getCurrentResolution:getCurrentResolution
+			getCurrentResolution:getCurrentResolution,
+			getCurrentResolutionIndex:getCurrentResolutionIndex,
 		};
 	})();
 
@@ -1676,8 +1683,23 @@ var SvgScene=function(){
 
 			var settingsList=function(){
 				var makeResolutionEditor=function(){
-					var row=document.createTextNode('hoi');
-					return {row:row,onEdit:function(){}};
+					var row=document.createElement('div');
+					row.setAttribute('style','background-color:rgb(75, 75, 75);margin:10px;padding:2px;color:#FFFFFF;height:50px');
+					var options=Settings.getResolutionOptions();
+					var selector=document.createElement('select');
+					for(var i=0;i<options.length;i++){
+						selector.appendChild((function(option){
+							var optionEl=document.createElement('option');
+							optionEl.setAttribute('value','a');
+							var optionText=option.w+' x '+option.h;
+							optionEl.appendChild(document.createTextNode(optionText));
+							return optionEl;
+						})(options[i]));
+					}
+					selector.selectedIndex=Settings.getCurrentResolutionIndex();
+					row.appendChild(makeTable([[document.createTextNode('resolution: '), selector]]));
+					var onEdit=function(){Settings.setResolutionOption(selector.selectedIndex);};
+					return {row:row,onEdit:onEdit};
 				};
 				var rows=[];
 				var onEdits=[];
