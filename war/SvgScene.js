@@ -1067,6 +1067,32 @@ var SvgScene=function(){
 	var Interaction=(function(){
 		var connected=true;
 		var waiting=false;
+		var writeImage=function(colorString){
+			var res=Settings.getCurrentResolution();
+			var w=res.w;
+			var h=res.h;
+			var win=window.open("","","width="+w+", height="+h);
+			var canvas=document.createElement('canvas');
+			canvas.setAttribute('width',w);
+			canvas.setAttribute('height', h);
+			canvas.setAttribute('style', 'position:absolute;left:0;top:0');
+			win.document.body.appendChild(canvas);
+			var currentL=0;
+			var currentT=0;
+			var color;
+			var ctx=canvas.getContext("2d");
+			while(colorString.length>0&&currentL<w&&currentT<h){
+				color=colorString.substr(0,6);
+				ctx.fillStyle="#"+color;
+				ctx.fillRect(currentL, currentT,1,1);
+				colorString=colorString.substring(6);
+				currentT++;
+				if(currentT==h){
+					currentT=0;
+					currentL++;
+				}
+			}
+		};
 		var doSomething=function(callback1, callback2){
 			if(connected&&(!waiting)){
 				waiting=true;
@@ -1076,42 +1102,21 @@ var SvgScene=function(){
 					//this.response
 					console.log(this.response.substr(0,3));
 					if(this.response.substr(0,3)==="ecf"){
-						(function(colorString){
-							var res=Settings.getCurrentResolution();
-							var w=res.w;
-							var h=res.h;
-							var win=window.open("","","width="+w+", height="+h);
-							var canvas=document.createElement('canvas');
-							canvas.setAttribute('width',w);
-							canvas.setAttribute('height', h);
-							canvas.setAttribute('style', 'position:absolute;left:0;top:0');
-							win.document.body.appendChild(canvas);
-							var currentL=0;
-							var currentT=0;
-							var color;
-							var ctx=canvas.getContext("2d");
-							while(colorString.length>0&&currentL<w&&currentT<h){
-								color=colorString.substr(0,6);
-								ctx.fillStyle="#"+color;
-								ctx.fillRect(currentL, currentT,1,1);
-								colorString=colorString.substring(6);
-								currentT++;
-								if(currentT==h){
-									currentT=0;
-									currentL++;
-								}
-							}
-						})(this.response.substr(3));
+						writeImage(this.response.substr(3));
 					}
 					else{
 						(function(response){
-							var w=viewPort.w();
-							var h=viewPort.h();
+							var res=Settings.getCurrentResolution();
+							var w=res.w;
+							var h=res.h;
 							var win=window.open("","","width="+w+", height="+h);
 							win.document.write(response);
 						})(this.response);
 					}
 					waiting=false;
+					if(callback2){callback2();}
+				};
+				req.onerror=function(){
 					if(callback2){callback2();}
 				};
 				var s=sceneXml();
@@ -1139,7 +1144,7 @@ var SvgScene=function(){
 			var initW, initH, w,h, roundW, roundH;
 			initW=viewPort.w();
 			initH=viewPort.h();
-			for(var i=0;i<5;i++){
+			for(var i=0;i<8;i++){
 				w=initW*Math.pow(0.75, i);
 				h=initH*Math.pow(0.75, i);
 				resolutionOptions.push({w:Math.round(w),h:Math.round(h)});

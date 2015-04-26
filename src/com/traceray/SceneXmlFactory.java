@@ -2,6 +2,7 @@ package com.traceray;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.StringReader;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.DocumentBuilder;
@@ -9,6 +10,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 
+import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -39,6 +41,25 @@ public class SceneXmlFactory {
 		dbf.setSchema(sch);
 		dbf.setNamespaceAware(true);
 	}
+	public Document getSceneXml(String xmlString){
+		return getSceneXml(new InputSource(new StringReader(xmlString)));
+	}
+	public Document getSceneXml(InputSource xmlInputSource){
+		if(this.sch!=null){
+			try{
+				DocumentBuilder db=dbf.newDocumentBuilder();
+				Document xml=db.parse(xmlInputSource);
+				return xml;
+			}catch(ParserConfigurationException e){
+				e.printStackTrace();
+			}catch(IOException e){
+				e.printStackTrace();
+			} catch (SAXException e) {
+				e.printStackTrace();
+			}
+		}
+		return null;
+	}
 	public Document getSceneXml(InputStream input){
 		if(this.sch!=null){
 			try{
@@ -55,23 +76,23 @@ public class SceneXmlFactory {
 		}
 		return null;
 	}
-	public Document getSceneXml(String xmlPath){
-		if(this.sch!=null){
-			try{
-				DocumentBuilder db=dbf.newDocumentBuilder();
-				Document xml=db.parse(new File(xmlPath));
-				return xml;
-			}catch(ParserConfigurationException e){
-				e.printStackTrace();
-			}catch(IOException e){
-				e.printStackTrace();
-			} catch (SAXException e) {
-				e.printStackTrace();
-			}
-			
-			
-		}
-		return null;
-	}
+//	public Document getSceneXml(String xmlPath){
+//		if(this.sch!=null){
+//			try{
+//				DocumentBuilder db=dbf.newDocumentBuilder();
+//				Document xml=db.parse(new File(xmlPath));
+//				return xml;
+//			}catch(ParserConfigurationException e){
+//				e.printStackTrace();
+//			}catch(IOException e){
+//				e.printStackTrace();
+//			} catch (SAXException e) {
+//				e.printStackTrace();
+//			}
+//			
+//			
+//		}
+//		return null;
+//	}
 	
 }

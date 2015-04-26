@@ -18,6 +18,13 @@ import org.xml.sax.SAXException;
 
 @SuppressWarnings("serial")
 public class Traceray2Servlet extends HttpServlet {
+	private static byte[] toBytes(String s){
+		byte[] bytes=new byte[s.length()];
+		for(int i=0;i<s.length();i++){
+			bytes[i]=(byte)s.charAt(i);
+		}
+		return bytes;
+	}
 	public void doGet(HttpServletRequest req, HttpServletResponse resp)
 			throws IOException {
 		ServletContext context = getServletContext();
@@ -42,11 +49,12 @@ public class Traceray2Servlet extends HttpServlet {
 		resp.setContentType("text/plain");
 		OutputStream out=resp.getOutputStream();
 		XmlHandler h=new XmlHandler(fullPath, input, out);
-		try{
-			h.write();
-		}catch(IOException e){
-			out.write(new byte[]{'o', 'o', 'p', 's'});
-		}
+//		try{
+//			h.write();
+//		}catch(IOException e){
+//			out.write(new byte[]{'o', 'o', 'p', 's'});
+//		}
+		out.write(toBytes("oops"));
 	}
 }
 
@@ -55,6 +63,12 @@ class XmlHandler{
 	public XmlHandler(String schemaPath, InputStream xmlInput, OutputStream imageOutput){
 		SceneXmlFactory f=SceneXmlFactory.getInstance(schemaPath);
 		Document xmlScene=f.getSceneXml(xmlInput);
+		SceneXml sceneXml=new SceneXml(xmlScene);
+		this.w=new SceneImageWriter(sceneXml.getScene(), sceneXml.getViewPort(), imageOutput, 3);
+	}
+	public XmlHandler(String schemaPath, String xmlString, OutputStream imageOutput){
+		SceneXmlFactory f=SceneXmlFactory.getInstance(schemaPath);
+		Document xmlScene=f.getSceneXml(xmlString);
 		SceneXml sceneXml=new SceneXml(xmlScene);
 		this.w=new SceneImageWriter(sceneXml.getScene(), sceneXml.getViewPort(), imageOutput, 3);
 	}
