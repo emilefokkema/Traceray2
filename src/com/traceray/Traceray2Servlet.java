@@ -21,6 +21,7 @@ import javax.xml.validation.SchemaFactory;
 import javax.xml.validation.Schema;
 
 import org.xml.sax.SAXException;
+import com.google.appengine.api.taskqueue.TaskHandle;
 abstract class TracerayServlet extends HttpServlet{
 	protected static byte[] toBytes(String s){
 		byte[] bytes=new byte[s.length()];
@@ -29,11 +30,13 @@ abstract class TracerayServlet extends HttpServlet{
 		}
 		return bytes;
 	}
-	protected static void queueTask(String xmlString, HttpServletResponse resp) throws IOException{
+	protected static String queueTask(String xmlString) throws IOException{
 		 Queue queue = QueueFactory.getDefaultQueue();
-	        queue.add(TaskOptions.Builder.withUrl("/worker").param("key", xmlString));
-
-	        resp.sendRedirect("/worker?key="+xmlString);
+		 String key=Integer.toString((int)(10000*Math.random()));
+	        queue.add(TaskOptions.Builder.withUrl("/worker").param("key", key).param("xmlstring", xmlString));
+	        //resp.sendRedirect("/worker?key="+key);
+	       
+	        return key;
 	}
 }
 @SuppressWarnings("serial")
@@ -62,7 +65,8 @@ public class Traceray2Servlet extends TracerayServlet {
 		String line=br.readLine();
 		//XmlHandler h=new XmlHandler(fullPath, line);
 		//h.queueTask(resp);
-		queueTask(line, resp);
+		String key=queueTask(line);
+		resp.getOutputStream().write(toBytes("key"+key));
 	}
 }
 

@@ -11,17 +11,17 @@ public class SceneImageWriter {
 	int w,h, d;
 	Scene s;
 	Viewport v;
-	OutputStream out;
-	public SceneImageWriter(Scene s, Viewport v, OutputStream imageOutput, int recursionDepth){
+	//OutputStream out;
+	public SceneImageWriter(Scene s, Viewport v, int recursionDepth){
 		this.w=v.w;
 		this.h=v.h;
 		this.s=s;
 		this.v=v;
 		this.d=recursionDepth;
-		this.out=imageOutput;
+		//this.out=imageOutput;
 	}
-	public void write() throws IOException{
-		MyImage i=new MyImage(w, h, this.out);
+	public String write() throws IOException{
+		MyImage i=new MyImage(w, h);
 		ThreadFactory factory= ThreadManager.currentRequestThreadFactory();
 		ExecutorService executor = Executors.newFixedThreadPool(4, factory);
 		for(int l=1;l<=w;l++){
@@ -34,6 +34,6 @@ public class SceneImageWriter {
 		while(!executor.isTerminated()){}
 		System.out.println("SceneImageWriter: image calculated.");
 		System.out.println(""+w+", "+h);
-		i.write();
+		return i.write();
 	}
 }

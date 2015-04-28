@@ -1067,6 +1067,7 @@ var SvgScene=function(){
 	var Interaction=(function(){
 		var connected=true;
 		var waiting=false;
+		var triesLeft;
 		var writeImage=function(colorString){
 			var res=Settings.getCurrentResolution();
 			var w=res.w;
@@ -1076,46 +1077,78 @@ var SvgScene=function(){
 			canvas.setAttribute('width',w);
 			canvas.setAttribute('height', h);
 			canvas.setAttribute('style', 'position:absolute;left:0;top:0');
-			win.document.body.appendChild(canvas);
-			var currentL=0;
-			var currentT=0;
-			var color;
-			var ctx=canvas.getContext("2d");
-			while(colorString.length>0&&currentL<w&&currentT<h){
-				color=colorString.substr(0,6);
-				ctx.fillStyle="#"+color;
-				ctx.fillRect(currentL, currentT,1,1);
-				colorString=colorString.substring(6);
-				currentT++;
-				if(currentT==h){
-					currentT=0;
-					currentL++;
+			if(win){
+				win.document.body.appendChild(canvas);
+				var currentL=0;
+				var currentT=0;
+				var color;
+				var ctx=canvas.getContext("2d");
+				while(colorString.length>0&&currentL<w&&currentT<h){
+					color=colorString.substr(0,6);
+					ctx.fillStyle="#"+color;
+					ctx.fillRect(currentL, currentT,1,1);
+					colorString=colorString.substring(6);
+					currentT++;
+					if(currentT==h){
+						currentT=0;
+						currentL++;
+					}
 				}
+			}else{
+				alert("Please allow a popup. And try again.");
 			}
+		};
+		var reqOnload=function(callback1, callback2){
+			return function(){
+				//this.response
+				var begin=this.response.substr(0,3);
+				if(begin==="ecf"){
+					writeImage(this.response.substr(3));
+					waiting=false;
+					if(callback2){callback2();}
+				}
+				else if(begin==="key"){
+					console.log("got key");
+					var whatToRepeat=function(){
+						var key=this.response.substr(3);
+						if(triesLeft>0){
+							var req=new XMLHttpRequest();
+							req.onload=reqOnload(callback1, callback2);
+							req.onerror=function(){
+								triesLeft=0;
+								if(callback2){callback2();}
+							};
+							req.open("GET","image?key="+key);
+							console.log("trying...");
+							req.send();
+							triesLeft--;
+						}else{
+							console.log("no more tries left");
+							if(callback2){callback2();}
+						}
+					}.bind(this);
+					setTimeout(whatToRepeat, 1000);
+				}
+				else{
+					(function(response){
+						var res=Settings.getCurrentResolution();
+						var w=res.w;
+						var h=res.h;
+						var win=window.open("","","width="+w+", height="+h);
+						win.document.body.appendChild(document.createTextNode(response));
+					})(this.response);
+					waiting=false;
+					if(callback2){callback2();}
+				}
+			};
 		};
 		var doSomething=function(callback1, callback2){
 			if(connected&&(!waiting)){
 				waiting=true;
+				triesLeft=20;
 				if(callback1){callback1();}
 				var req=new XMLHttpRequest();
-				req.onload=function(){
-					//this.response
-					console.log(this.response.substr(0,3));
-					if(this.response.substr(0,3)==="ecf"){
-						writeImage(this.response.substr(3));
-					}
-					else{
-						(function(response){
-							var res=Settings.getCurrentResolution();
-							var w=res.w;
-							var h=res.h;
-							var win=window.open("","","width="+w+", height="+h);
-							win.document.body.appendChild(document.createTextNode(response));
-						})(this.response);
-					}
-					waiting=false;
-					if(callback2){callback2();}
-				};
+				req.onload=reqOnload(callback1, callback2);
 				req.onerror=function(){
 					if(callback2){callback2();}
 				};
@@ -1558,20 +1591,36 @@ var SvgScene=function(){
 				var button=document.createElement('div');
 				button.setAttribute('style', positionString(offset)+'background-color:rgb(50,50,50);color: #FFFFFF;cursor: hand;padding:0px;font-family:Arial; '+opacityString+sizeString(size));
 				button.setAttribute('align','center');
+				var highlightSlider=(function(high, low){
+					var currentLevel;
+					var setToLevel=function(l){l=Math.floor(l);currentLevel=l;button.style.backgroundColor='rgb('+l+','+l+','+l+')';};
+					var start=function(){
+						setToLevel(high);
+						approach();
+					};
+					var approach=function(){
+						var d=currentLevel-low;
+						if(d>(high-low)/100){
+							setToLevel(low+(currentLevel-low)*(1-1/10));
+							setTimeout(approach, 30);
+						}else{
+							setToLevel(low);
+						}
+					};
+					return {start:start};
+				})(150, 50);
 				button.onmousedown=function(event){
 					preventDefault(event);
 					if(event.which!=1){return;}
-					
+					highlightSlider.start();
 					onmousedown.call(null);
 				};
-				button.onmouseover=function(){button.style.backgroundColor='rgb(150,150,150)';};
 				var stopFunction=function(){
 					if(onmouseup){
 						onmouseup.call(null);
 					}
 				};
 				button.onmouseup=stopFunction;
-				button.onmouseleave=function(){stopFunction();button.style.backgroundColor='rgb(50,50,50)';};
 				//button.onmouseup=onmouseup||function(){};
 				button.appendChild((function(){
 					var a=document.createElement('div');
@@ -2175,9 +2224,9 @@ var SvgScene=function(){
 			};
 
 			var makeSlider=function(offset, size, orientation, slidemover){
-				var rectangle=function(offset,size){
+				var rectangle=function(offset,size,pointer){
 					var node=document.createElement('div');
-					node.setAttribute('style',positionString(offset)+sizeString(size)+'background-color: rgb(100,100,100);border:1pt solid rgb(200,200,200);border-radius:3px;opacity:0.75');
+					node.setAttribute('style',positionString(offset)+sizeString(size)+(pointer?'cursor:pointer;':'')+'background-color: rgb(100,100,100);border:1pt solid rgb(200,200,200);border-radius:3px;opacity:0.75');
 					return node;
 				};
 				var barR=1/3;
@@ -2220,7 +2269,7 @@ var SvgScene=function(){
 							thisOffset.bottom=offset.bottom+size.height*(1-handleR)/2;
 						}
 					}
-					var handle=rectangle(thisOffset,orientation==0?{width:size.width*handleR,height:size.height}:{width:size.width,height:size.height*handleR});
+					var handle=rectangle(thisOffset,orientation==0?{width:size.width*handleR,height:size.height}:{width:size.width,height:size.height*handleR},true);
 					return handle;
 				})();
 				var slidePositionHandlers=(function(){

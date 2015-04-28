@@ -4,17 +4,18 @@ import java.io.IOException;
 import java.io.OutputStream;
 
 public class MyImage {
-	private OutputStream out;
+	//private OutputStream out;
 	public int w;
 	public int h;
 	double[][] brightness;
 	MyColor[][] color;
-	public MyImage(int w, int h, OutputStream out){
+	private StringBuilder colorStringBuilder;
+	public MyImage(int w, int h){
 		this.w=w;
 		this.h=h;
 		this.brightness=new double[w][h];
 		this.color=new MyColor[w][h];
-		this.out=out;
+		//this.out=out;
 	}
 	public MyImage setBrightness(int l, int t, double b){
 		this.brightness[l-1][t-1]=b;
@@ -24,12 +25,15 @@ public class MyImage {
 		this.color[l-1][t-1]=c;
 		return this;
 	}
-	public void write() throws IOException{
-		this.out.write(new byte[]{'e', 'c', 'f'});
+	public String write() throws IOException{
+		this.colorStringBuilder=new StringBuilder();
+		this.colorStringBuilder.append("ecf");
 		for(int i=0;i<w;i++){
 			for(int j=0;j<h;j++){
-				this.out.write(color[i][j].toByteArray());
+				//this.out.write(color[i][j].toByteArray());
+				this.colorStringBuilder.append(color[i][j].toString());
 			}
 		}
+		return this.colorStringBuilder.toString();
 	}
 }
