@@ -1110,7 +1110,7 @@ var SvgScene=function(){
 							var w=res.w;
 							var h=res.h;
 							var win=window.open("","","width="+w+", height="+h);
-							win.document.write(response);
+							win.document.body.appendChild(document.createTextNode(response));
 						})(this.response);
 					}
 					waiting=false;
