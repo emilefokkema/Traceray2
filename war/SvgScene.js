@@ -1119,7 +1119,7 @@ var SvgScene=function(){
 								if(callback2){callback2();}
 							};
 							req.open("GET","image?key="+key);
-							console.log("trying...");
+							console.log("trying...("+triesLeft+" tries left)");
 							req.send();
 							triesLeft--;
 						}else{
@@ -1127,7 +1127,8 @@ var SvgScene=function(){
 							if(callback2){callback2();}
 						}
 					}.bind(this);
-					setTimeout(whatToRepeat, 1000);
+					console.log("trying again in 3s");
+					setTimeout(whatToRepeat, 3000);
 				}
 				else{
 					(function(response){
@@ -1145,7 +1146,7 @@ var SvgScene=function(){
 		var doSomething=function(callback1, callback2){
 			if(connected&&(!waiting)){
 				waiting=true;
-				triesLeft=20;
+				triesLeft=50;
 				if(callback1){callback1();}
 				var req=new XMLHttpRequest();
 				req.onload=reqOnload(callback1, callback2);
