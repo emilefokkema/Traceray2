@@ -22,16 +22,17 @@ public class SceneImageWriter {
 	}
 	public String write() throws IOException{
 		MyImage i=new MyImage(w, h);
-		ThreadFactory factory= ThreadManager.currentRequestThreadFactory();
-		ExecutorService executor = Executors.newFixedThreadPool(4, factory);
+		//ThreadFactory factory= ThreadManager.currentRequestThreadFactory();
+		//ExecutorService executor = Executors.newFixedThreadPool(4, factory);
 		for(int l=1;l<=w;l++){
 			for(int t=1;t<=h;t++){
 				Runnable pixelCalculator=new PixelCalculator(l, t, i, v, s, d);
-				executor.execute(pixelCalculator);
+				//executor.execute(pixelCalculator);
+				pixelCalculator.run();
 			}
 		}
-		executor.shutdown();
-		while(!executor.isTerminated()){}
+		//executor.shutdown();
+		//while(!executor.isTerminated()){}
 		System.out.println("SceneImageWriter: image calculated.");
 		System.out.println(""+w+", "+h);
 		return i.write();
