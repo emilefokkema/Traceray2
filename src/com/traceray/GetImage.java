@@ -43,6 +43,7 @@ public class GetImage extends TracerayServlet{
         			break;
         		}
         	}
+        	datastore.delete(result.getKey());
 		}
 	}
 	private int isPresent(String key, DatastoreService datastore){
@@ -58,6 +59,7 @@ public class GetImage extends TracerayServlet{
         	}catch(Exception e){
         		e.printStackTrace();
         	}
+			datastore.delete(result.getKey());
 			break;
 		}
 		if(found){return nEmployees;}else{return 0;}
