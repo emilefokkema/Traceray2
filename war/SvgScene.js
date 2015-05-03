@@ -6,7 +6,8 @@ var SvgScene=function(){
 		"ccwArrow": '<svg width="20" height="20" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg"><g><title>rotate</title><path fill="#ffffff" d="m19.25052,11.33195c0,2.54255 -0.95532,4.93405 -2.68992,6.73055l-1.6236,-1.68264c1.30066,-1.34797 2.01717,-3.13985 2.01717,-5.04792s-0.7165,-3.69994 -2.01717,-5.04791c-2.67647,-2.77262 -7.02249,-2.7796 -9.71126,-0.02789l2.60133,2.69594l-6.88905,0l0,-7.13959l2.66301,2.75871c3.58468,-3.68135 9.3906,-3.66975 12.9596,0.03024c1.73457,1.7965 2.68989,4.18796 2.68989,6.73051l0,0l0,0.00001z" id="svg_1"/></g></svg>',
 		"checkMark": '<svg width="40" height="40" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg"><g><title>OK</title><path d="m33.92188,9.00002l-16.85938,17.53749l-9.10937,-9.53l-3.45313,3.2625l12.1875,12.47999l20.3125,-20.79999" id="svg_1" stroke-linecap="null" stroke-linejoin="null" stroke-dasharray="null" stroke-width="null" fill="#FFFFFF"/></g></svg>',
 		"cross": '<svg width="40" height="40" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg"><g><title>Cancel</title><path fill="black" stroke="null" id="svg_1"/><g id="svg_4"><rect transform="rotate(45 20.375,19.093749999999996) " fill="#FFFFFF" stroke-width="5" stroke-opacity="0" x="2.5" y="17.25" width="35.75" height="3.6875" id="svg_2" stroke="#000000"/><rect id="svg_3" transform="rotate(-45 20.375000000000007,19.125) " fill="#FFFFFF" stroke-width="5" stroke-opacity="0" x="2.5" y="17.28125" width="35.75" height="3.6875" stroke="#000000"/></g></g></svg>',
-		"crosshairs": '<svg width="40" height="40" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg"><g><title>Layer 1</title><path fill="#FFFFFF" stroke="null" id="svg_1"/><g id="svg_4"><circle fill="none" stroke-width="3" stroke-dasharray="null" stroke-linejoin="null" stroke-linecap="null" cx="19.375" cy="19.71875" r="14.54692" id="svg_2" fill-opacity="0" stroke="#FFFFFF"/><line fill="none" stroke="#FFFFFF" stroke-width="3" stroke-dasharray="null" stroke-linejoin="null" stroke-linecap="null" fill-opacity="0" x1="19.4375" y1="5.375" x2="19.4375" y2="13.375" id="svg_5"/><line fill="none" stroke="#FFFFFF" stroke-width="3" stroke-dasharray="null" stroke-linejoin="null" stroke-linecap="null" fill-opacity="0" x1="19.5" y1="26.8125" x2="19.5" y2="34.8125" id="svg_6"/><line fill="none" stroke="#FFFFFF" stroke-width="3" stroke-dasharray="null" stroke-linejoin="null" stroke-linecap="null" fill-opacity="0" x1="9.125" y1="15.875" x2="9.125" y2="23.875" id="svg_7" transform="rotate(90 9.124999999999998,19.875000000000004) "/><line fill="none" stroke="#FFFFFF" stroke-width="3" stroke-dasharray="null" stroke-linejoin="null" stroke-linecap="null" fill-opacity="0" x1="29.5625" y1="15.9375" x2="29.5625" y2="23.9375" transform="rotate(90 29.5625,19.937500000000004) " id="svg_8"/></g></g></svg>'
+		"crosshairs": '<svg width="40" height="40" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg"><g><title>Layer 1</title><path fill="#FFFFFF" stroke="null" id="svg_1"/><g id="svg_4"><circle fill="none" stroke-width="3" stroke-dasharray="null" stroke-linejoin="null" stroke-linecap="null" cx="19.375" cy="19.71875" r="14.54692" id="svg_2" fill-opacity="0" stroke="#FFFFFF"/><line fill="none" stroke="#FFFFFF" stroke-width="3" stroke-dasharray="null" stroke-linejoin="null" stroke-linecap="null" fill-opacity="0" x1="19.4375" y1="5.375" x2="19.4375" y2="13.375" id="svg_5"/><line fill="none" stroke="#FFFFFF" stroke-width="3" stroke-dasharray="null" stroke-linejoin="null" stroke-linecap="null" fill-opacity="0" x1="19.5" y1="26.8125" x2="19.5" y2="34.8125" id="svg_6"/><line fill="none" stroke="#FFFFFF" stroke-width="3" stroke-dasharray="null" stroke-linejoin="null" stroke-linecap="null" fill-opacity="0" x1="9.125" y1="15.875" x2="9.125" y2="23.875" id="svg_7" transform="rotate(90 9.124999999999998,19.875000000000004) "/><line fill="none" stroke="#FFFFFF" stroke-width="3" stroke-dasharray="null" stroke-linejoin="null" stroke-linecap="null" fill-opacity="0" x1="29.5625" y1="15.9375" x2="29.5625" y2="23.9375" transform="rotate(90 29.5625,19.937500000000004) " id="svg_8"/></g></g></svg>',
+		"gear": '<svg width="40" height="40" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg"><g><title>Settings</title><path fill="#FFFFFF" d="m35.5,21.85001l0,-3.82501l-3.53456,-1.275c-0.29723,-1.16807 -0.75559,-2.27015 -1.34601,-3.28397l0.0048,-0.00496l1.61201,-3.44072l-2.6623,-2.70473l-3.3866,1.63761l-0.00488,0.00496c-0.99791,-0.59982 -2.08293,-1.06549 -3.23246,-1.3673l-1.25501,-3.59089l-3.76499,0l-1.25501,3.59097c-1.1496,0.30173 -2.23455,0.7674 -3.23246,1.36744l-0.00487,-0.0051l-3.38675,-1.63762l-2.6623,2.70473l1.61192,3.44072l0.00503,0.00495c-0.59056,1.01381 -1.04893,2.11613 -1.346,3.28398l-3.53456,1.27492l0,3.82501l3.53463,1.275c0.297,1.16792 0.75552,2.27016 1.34601,3.28398l-0.00503,0.00494l-1.61193,3.44057l2.66231,2.70473l3.38674,-1.6377l0.00488,-0.00488c0.9979,0.59983 2.08293,1.06541 3.23246,1.36745l1.25492,3.59089l3.76499,0l1.25501,-3.59089c1.1496,-0.30196 2.23455,-0.76762 3.23246,-1.36745l0.00488,0.00488l3.3866,1.6377l2.6623,-2.70473l-1.61201,-3.44057l-0.0048,-0.00494c0.59042,-1.01381 1.04871,-2.11614 1.34601,-3.28398l3.53456,-1.275zm-15.6875,4.46249c-3.46564,0 -6.275,-2.85421 -6.275,-6.375c0,-3.52087 2.80935,-6.37501 6.275,-6.37501c3.46564,0 6.275,2.85414 6.275,6.37501c0,3.52087 -2.80936,6.375 -6.275,6.375z"/></g></svg>'
 
 	};
 
@@ -1146,7 +1147,7 @@ var SvgScene=function(){
 		var doSomething=function(callback1, callback2){
 			if(connected&&(!waiting)){
 				waiting=true;
-				triesLeft=50;
+				triesLeft=150;
 				if(callback1){callback1();}
 				var req=new XMLHttpRequest();
 				req.onload=reqOnload(callback1, callback2);
@@ -1213,8 +1214,23 @@ var SvgScene=function(){
 		var spheres=[];
 		var lightSources=[];
 		var myMouseEvents=(function(){
+			var currentPos=(function(){
+				var x=0;
+				var y=0;
+				var set=function(x_,y_){
+					var dx=x_-x;
+					var dy=y_-y;
+					x=x_;
+					y=y_;
+					return {x:dx,y:dy};
+				};
+				return {
+					set:set
+				};
+			})();
 			var mouseDown=false;
 			return {
+				currentPos:currentPos,
 				onMove: function(dl, dt){
 					if(mouseDown){
 						viewPort.rotY(dl/500);
@@ -1290,14 +1306,22 @@ var SvgScene=function(){
 		})();
 
 		var onMouseDown=function(evt){
+			myMouseEvents.currentPos.set(evt.clientX,evt.clientY);
 			preventDefault(evt);
 			myMouseEvents.onDown();
 		};
 		var onMouseUp=function(){myMouseEvents.onUp();};
 		var onMouseMove=function(evt){
 			preventDefault(evt);
-			var dl=evt.movementX;
-			var dt=evt.movementY;
+			var d, dl, dt;
+			if(evt.movementX||evt.movementX==0){
+				dl=evt.movementX;
+				dt=evt.movementY;
+			}else{
+				d=myMouseEvents.currentPos.set(evt.clientX,evt.clientY);
+				dl=d.x;
+				dt=d.y;
+			}
 			myMouseEvents.onMove(dl, dt);
 		};
 
@@ -1667,8 +1691,46 @@ var SvgScene=function(){
 			};
 
 			svgObject.controls.push((function(){
+				var spinner=(function(){
+					var w=40;
+					var h=40;
+					var NS="http://www.w3.org/2000/svg";
+					var svgNode=document.createElementNS(NS,"svg");
+					svgNode.setAttribute('width',w);
+					svgNode.setAttribute('height',h);
+					var circle=function(){
+						var svg=document.createElementNS(NS, "circle");
+						svg.setAttribute('fill','#FFFFFF');
+						svg.setAttribute('r',4);
+						var setPos=function(x_,y_){
+							svg.setAttribute('cx', x_);
+							svg.setAttribute('cy',y_);
+						};
+						setPos(0,0);
+						return {node:svg,setPos:function(x_,y_){setPos(x_,y_);return this;}};
+					};
+					var c1=circle();
+					var c2=circle();
+					svgNode.appendChild(c1.node);
+					svgNode.appendChild(c2.node);
+					var mover=function(pos, circle){
+						var t=0;
+						var move=function(){
+							var xy=pos(t);
+							circle.setPos(xy[0],xy[1]);
+							t+=0.1;
+							setTimeout(move, 20);
+						};
+						return {move:move};
+					}
+					var m1=mover(function(t){return [20, 20+16*Math.sin(2*t)];}, c1);
+					var m2=mover(function(t){return [20+16*Math.cos(t), 20];}, c2);
+					m1.move();
+					m2.move();
+					return {node:svgNode};
+				})();
 				var button=makeButton({left:0,bottom:0},'>',function(){
-				Interaction.doSomething(function(){button.setInnerHTML('...');},function(){button.setInnerHTML('>');});
+				Interaction.doSomething(function(){button.setInnerHTML(spinner.node);},function(){button.setInnerHTML('>');});
 			}, function(){},0.75,{width:'15%',height:'10%'});
 				return button.append(where);
 			})());
@@ -1703,7 +1765,7 @@ var SvgScene=function(){
 			})();
 			svgObject.controls.push(xmlDialog);
 
-			svgObject.controls.push(makeButton({left:'45%',bottom:0},'settings', function(){settingsDialog.showSettingsList(settingsList());}, function(){},0.75,{width:'15%',height:'10%'}).append(where));
+			svgObject.controls.push(makeButton({left:'45%',bottom:0},'settings', function(){settingsDialog.showSettingsList(settingsList());}, function(){},0.75,{width:'15%',height:'10%'}).append(where).setInnerHTML(Images["gear"]));
 			var settingsDialog=(function(){
 				var settingsDialog=document.createElement('div');
 				var onEdit=function(){};
