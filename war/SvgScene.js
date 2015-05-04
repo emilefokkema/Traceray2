@@ -1095,7 +1095,6 @@ var SvgScene=function(){
 	var Interaction=(function(){
 		var connected=true;
 		var waiting=false;
-		var triesLeft;
 		var writeImage=function(colorString){
 			var res=Settings.getCurrentResolution();
 			var w=res.w;
@@ -1126,7 +1125,17 @@ var SvgScene=function(){
 				alert("Please allow a popup. And try again.");
 			}
 		};
-		var reqOnload=function(callback1, callback2){
+		var askImage=function(key, triesLeft, callback1, callback2){
+			if(triesLeft>0){
+				var req=new XMLHttpRequest();
+				req.onload=reqOnload(callback1, callback2, triesLeft);
+				req.onerror=function(){if(callback2){callback2();}};
+				req.open("GET","image?key="+key);
+				console.log("trying...("+triesLeft+" tries left)");
+				req.send();
+			}
+		};
+		var reqOnload=function(callback1, callback2, triesLeft){
 			return function(){
 				//this.response
 				var begin=this.response.substr(0,3);
@@ -1137,26 +1146,10 @@ var SvgScene=function(){
 				}
 				else if(begin==="key"){
 					console.log("got key");
-					var whatToRepeat=function(){
-						var key=this.response.substr(3);
-						if(triesLeft>0){
-							var req=new XMLHttpRequest();
-							req.onload=reqOnload(callback1, callback2);
-							req.onerror=function(){
-								triesLeft=0;
-								if(callback2){callback2();}
-							};
-							req.open("GET","image?key="+key);
-							console.log("trying...("+triesLeft+" tries left)");
-							req.send();
-							triesLeft--;
-						}else{
-							console.log("no more tries left");
-							if(callback2){callback2();}
-						}
-					}.bind(this);
-					console.log("trying again in 3s");
-					setTimeout(whatToRepeat, 3000);
+					var key=this.response.substr(3);
+					if(triesLeft>0){
+						setTimeout(function(){askImage(key, triesLeft-1, callback1, callback2);}, 3000);
+					}
 				}
 				else{
 					(function(response){
@@ -1174,10 +1167,9 @@ var SvgScene=function(){
 		var doSomething=function(callback1, callback2){
 			if(connected&&(!waiting)){
 				waiting=true;
-				triesLeft=150;
 				if(callback1){callback1();}
 				var req=new XMLHttpRequest();
-				req.onload=reqOnload(callback1, callback2);
+				req.onload=reqOnload(callback1, callback2, 200);
 				req.onerror=function(){
 					if(callback2){callback2();}
 				};
