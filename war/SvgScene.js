@@ -1975,6 +1975,23 @@ var SvgScene=function(){
 						makeNonEditable();
 						return {box:box,onEdit:onEdit, makeEditable:makeEditable, makeNonEditable: makeNonEditable, setShy:setShy, setValue:setValue};
 					},
+					"selectBox": function(name, optionNames, initialSelectedIndex, edit){
+						var box=document.createElement('div');
+						box.setAttribute('style', 'color:#FFFFFF;height:50px');
+						var selector=document.createElement('select');
+						for(var i=0;i<optionNames.length;i++){
+							selector.appendChild((function(option){
+								var optionEl=document.createElement('option');
+								optionEl.setAttribute('value','a');
+								optionEl.appendChild(document.createTextNode(option));
+								return optionEl;
+							})(optionNames[i]));
+						}
+						selector.selectedIndex=initialSelectedIndex;
+						box.appendChild(makeTable([[document.createTextNode(name), selector]]));
+						var onEdit=function(){edit(selector.selectedIndex);};
+						return {box:box,onEdit:onEdit};
+					},
 					"rotationBox": function(edit){
 						var box=document.createElement('div');
 						box.setAttribute('style', 'width:20px;height:20px;visibility:hidden;cursor:pointer');
@@ -1991,12 +2008,13 @@ var SvgScene=function(){
 							picker.appendChild((function(){
 								var button=makeButton(null, 'OK',function(){aroundEditor.onEdit();axisEditor.onEdit();angleEditor.onEdit();onEdit();}, function(){}, 1, {width:75,height:30}).getNode();
 								var aroundEditor=self["pointBox"](currentAround.x(), currentAround.y(), currentAround.z(), function(x,y,z){currentAround=Point(x,y,z);});
-								var axisEditor=self["valueBox"]('', currentAxis, function(v){if(v==0||v==1||v==2){currentAxis=v;}});
+								//var axisEditor=self["valueBox"]('', currentAxis, function(v){if(v==0||v==1||v==2){currentAxis=v;}});
+								var axisEditor=self["selectBox"]('',['x', 'y', 'z'], 0, function(i){currentAxis=i;});
 								var angleEditor=self["valueBox"]('', currentAngle, function(v){currentAngle=v*Math.PI/180;});
 								return makeTable([
-									[self["propertyRow"]('around: ', aroundEditor.box)],
-									[self["propertyRow"]('axis (0..2): ', axisEditor.box)],
-									[self["propertyRow"]('angle (deg):', angleEditor.box)],
+									[self["propertyRow"]('around point: ', aroundEditor.box)],
+									[self["propertyRow"]('around axis: ', axisEditor.box)],
+									[self["propertyRow"]('angle:', angleEditor.box)],
 									[button]
 									]);
 							})());
