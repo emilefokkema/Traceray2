@@ -59,12 +59,9 @@ public class Traceray2Servlet extends TracerayServlet {
 //	}
 	public void doPost(HttpServletRequest req, HttpServletResponse resp)
 			throws IOException {
-		//ServletContext context = getServletContext();
 		String fullPath = getServletContext().getRealPath("/WEB-INF/schema/xml_schema.xsd");
 		BufferedReader br=req.getReader();
 		String line=br.readLine();
-		//XmlHandler h=new XmlHandler(fullPath, line);
-		//h.queueTask(resp);
 		String key=queueTask(line);
 		resp.getOutputStream().write(toBytes("key"+key));
 	}

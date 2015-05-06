@@ -36,6 +36,18 @@ public class SceneXml {
 		return (Plane)setShapeAttributes(new Plane(point, normal, c), e);
 		//return new Plane(point, normal, c);
 	}
+	private static RectangleSection getRectangleSection(Element e){
+		MyColor c=new MyColor(e.getAttribute("color"));
+		Point point=getPoint((Element)e.getElementsByTagName("point").item(0));
+		Point normal=getPoint((Element)e.getElementsByTagName("normal").item(0));
+		Plane p=(Plane)setShapeAttributes(new Plane(point, normal, c), e);
+		double xmin, xmax, ymin, ymax;
+		xmin=Double.parseDouble(e.getAttribute("xmin"));
+		xmax=Double.parseDouble(e.getAttribute("xmax"));
+		ymin=Double.parseDouble(e.getAttribute("ymin"));
+		ymax=Double.parseDouble(e.getAttribute("ymax"));
+		return new RectangleSection(p, xmin, ymin, xmax, ymax);
+	}
 	private static Sphere getSphere(Element e){
 		MyColor c=new MyColor(e.getAttribute("color"));
 		Point center=getPoint((Element)e.getElementsByTagName("center").item(0));
@@ -61,6 +73,7 @@ public class SceneXml {
 	private static ArrayList<Shape> getShapes(Element group){
 		NodeList planeList=group.getElementsByTagName("plane");
 		NodeList sphereList=group.getElementsByTagName("sphere");
+		NodeList rectangleSectionList=group.getElementsByTagName("rectangle");
 		ArrayList<Shape> s=new ArrayList<Shape>();
 		for(int i=0;i<planeList.getLength();i++){
 			Element plane=(Element)planeList.item(i);
@@ -71,6 +84,11 @@ public class SceneXml {
 			Element sphere=(Element)sphereList.item(i);
 			System.out.println("[getShapes] adding sphere");
 			s.add(getSphere(sphere));
+		}
+		for(int i=0;i<rectangleSectionList.getLength();i++){
+			Element rectangleSection=(Element)rectangleSectionList.item(i);
+			System.out.println("[getShapes] adding rectangle");
+			s.add(getRectangleSection(rectangleSection));
 		}
 		System.out.println("[getShapes] how many: "+s.size());
 		//System.out.println(s.get(1));

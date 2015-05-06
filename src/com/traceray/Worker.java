@@ -93,16 +93,6 @@ public class Worker extends TracerayServlet {
          DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
          int nEmployees=putEmployees(result, key, datastore);
          putDone(key, datastore, nEmployees);
-//         Entity employee = new Entity("Employee");
-//         try{
-//       	 employee.setProperty("colors", new Text(result));
-//         }catch(IllegalArgumentException e){
-//        	 e.printStackTrace();
-//       	 employee.setProperty("colors", new Text("ecf000000"));
-//         }
-//         setColorAttributes(employee, split(result, 100_000));
-//         employee.setProperty("mykey",key);
-//         datastore.put(employee);
          
     }
     protected void doGet(HttpServletRequest request, HttpServletResponse response)

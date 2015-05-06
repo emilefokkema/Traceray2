@@ -27,8 +27,8 @@ public class SceneImageWriter {
 		for(int l=1;l<=w;l++){
 			for(int t=1;t<=h;t++){
 				Runnable pixelCalculator=new PixelCalculator(l, t, i, v, s, d);
-				//executor.execute(pixelCalculator);
 				pixelCalculator.run();
+				//executor.execute(pixelCalculator);
 			}
 		}
 		//executor.shutdown();

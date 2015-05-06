@@ -31,9 +31,22 @@
 				<xs:element name="lightsource" type="lightSource" />
 				<xs:element name="plane" type="plane" />
 				<xs:element name="sphere" type="sphere" />
+				<xs:element name="rectangle" type="rectangle" />
 			</xs:choice>
 			<xs:element name="rotation" type="rotation" minOccurs="0" maxOccurs="unbounded" />
 		</xs:sequence>
+	</xs:complexType>
+
+	<xs:complexType name="rectangle">
+		<xs:sequence>
+			<xs:element name="point" type="point" minOccurs="1" maxOccurs="1" />
+			<xs:element name="normal" type="point" minOccurs="1" maxOccurs="1" />
+		</xs:sequence>
+		<xs:attributeGroup ref="shapeAttributes" />
+		<xs:attribute name="xmin" type="xs:decimal" use="required"/>
+		<xs:attribute name="xmax" type="xs:decimal" use="required" />
+		<xs:attribute name="ymin" type="xs:decimal" use="required" />
+		<xs:attribute name="ymax" type="xs:decimal" use="required" />
 	</xs:complexType>
 	
 	<xs:complexType name="plane">

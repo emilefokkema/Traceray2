@@ -650,8 +650,24 @@ var SvgScene=function(){
 		};
 	})();
 
+
 	var PlaneFactory=(function(){
 		var planes=[];
+		var PlaneFunctions=function(){
+			var setAxes=function(normal){
+				var xAxis,yAxis;
+				xAxis=normal.getSomePerpendicularVector();
+				yAxis=normal.cross(xAxis);
+				return [xAxis,yAxis];
+			};
+			var pointWithCoords=function(point, xAxis, yAxis, x, y){
+				return point.plus(xAxis.scale(x)).plus(yAxis.scale(y));
+			};
+			return {
+				setAxes: setAxes,
+				pointWithCoords: pointWithCoords
+			};
+		};
 		var Plane=function(point_, normal_, color_){
 			var normalArrow=LineSegmentFactory.makeArrow(point_, point_.plus(normal_), color_, 3);
 			var point, normal, color, thisSvg, gridLines, xAxis, yAxis, shapeAttributes;
@@ -659,10 +675,12 @@ var SvgScene=function(){
 			normal=normal_;
 			color=color_;
 			shapeAttributes=ShapeAttributeSet({reflection: 0});
+			var planeFunctions=PlaneFunctions();
 			var setShapeAttributes=function(attrs_){shapeAttributes=attrs_;};
 			var setAxes=function(){
-				xAxis=normal.getSomePerpendicularVector();
-				yAxis=normal.cross(xAxis);
+				var axes=planeFunctions.setAxes(normal);
+				xAxis=axes[0];
+				yAxis=axes[1];
 			};
 			var getHorizonLts=function(){
 				var horizonDirections=[];
@@ -695,7 +713,7 @@ var SvgScene=function(){
 				return lt_;
 			};
 			var pointWithCoords=function(x,y){
-				return point.plus(xAxis.scale(x)).plus(yAxis.scale(y));
+				return planeFunctions.pointWithCoords(point, xAxis, yAxis, x, y);
 			};
 			var getPairwiseGridPoints=function(){
 				var gp=[];
@@ -740,7 +758,6 @@ var SvgScene=function(){
 			var setPointAndNormal=function(point_, normal_){
 				if(!point_.equals(point)||!normal_.equals(normal)){
 					if(normal_.norm()==0){alert("A plane with normal (0,0,0)? Let's not.");return;}
-					console.log("[plane] setting point "+point_.toString()+" and normal "+normal_.toString()+"!");
 					point=point_;
 					normal=normal_;
 					normalArrow.setFromTo(point_, point_.plus(normal_));
@@ -821,11 +838,165 @@ var SvgScene=function(){
 		};
 		var draw=function(){for(var i=0;i<planes.length;i++){planes[i].draw();}};
 		return {
+			PlaneFunctions: PlaneFunctions,
 			makePlane: makePlane,
 			removePlane: removePlane,
 			clonePlane:clonePlane,
 			planes: function(){return planes;},
 			draw:draw
+		};
+	})();
+
+	var RectangleFactory=(function(){
+		var rectangles=[];
+		var Rectangle=function(point_, normal_, color_, xmin_, xmax_, ymin_, ymax_){
+			var point, normal, color, thisSvg, borders, xAxis, yAxis, shapeAttributes, xmin, xmax, ymin, ymax, corners;
+			point=point_;
+			normal=normal_;
+			color=color_;
+			xmin=xmin_;
+			xmax=xmax_;
+			ymin=ymin_;
+			ymax=ymax_;
+			shapeAttributes=ShapeAttributeSet({reflection: 0});
+			var planeFunctions=PlaneFactory.PlaneFunctions();
+			var setShapeAttributes=function(attrs_){shapeAttributes=attrs_;};
+			var setAxes=function(){
+				var axes=planeFunctions.setAxes(normal);
+				xAxis=axes[0];
+				yAxis=axes[1];
+				setCorners();
+			};
+			var pointWithCoords=function(x,y){
+				return planeFunctions.pointWithCoords(point, xAxis, yAxis, x, y);
+			};
+			var setCorners=function(){
+				corners= [
+					pointWithCoords(xmin, ymin),
+					pointWithCoords(xmax, ymin),
+					pointWithCoords(xmax, ymax),
+					pointWithCoords(xmin, ymax)
+				];
+			};
+			var getPairwiseCornerPoints=function(){
+				setCorners();
+				var cp=[];
+				for(var i=0;i<4;i++){
+					cp.push([corners[i], corners[(i+1)%4]]);
+				}
+				return cp;
+			};
+			var draw=function(){
+				var lt=[];
+				var vp, choice;
+				for(var i=0;i<4;i++){
+					vp=viewPort.getVisiblePointsBetween(corners[i], corners[(i+1)%4]);
+					choice=vp[0];
+					if(choice==null){choice=vp[1];}
+					if(choice!=null){lt.push(choice);}
+					
+				}
+				if(lt.length<4){
+					var last=lt[lt.length-1];
+					for(var i=lt.length;i<4;i++){
+						lt[i]=last;
+					}
+				}
+				thisSvg.setPoints(lt[0], lt[1], lt[2], lt[3]);
+				thisSvg.draw();
+			};
+			var setColor=function(color_){
+				color=color_;
+				thisSvg.setColor(color_);
+				for(var i in borders){borders[i].setColor(color_);}
+			};
+			var highlightOn=function(){
+				thisSvg.highlightOn();
+				for(var i=0;i<borders.length;i++){
+					borders[i].highlightOn();
+				}
+			};
+			var highlightOff=function(){
+				thisSvg.highlightOff();
+				for(var i=0;i<borders.length;i++){
+					borders[i].highlightOff();
+				}
+			};
+			var setPointAndNormal=function(point_, normal_){
+				if(!point_.equals(point)||!normal_.equals(normal)){
+					if(normal_.norm()==0){alert("A zero normal for a rectangle? Let's not.");return;}
+					point=point_;
+					normal=normal_;
+					setAxes();
+					setBorders();
+				}
+			};
+			var setRange=function(xmin_, xmax_, ymin_, ymax_){
+				xmin=xmin_;
+				xmax=xmax_;
+				ymin=ymin_;
+				ymax=ymax_;
+				setCorners();
+			};
+			var toString=function(){
+				return '<rectangle '+shapeAttributes.toString()+'color="'+color.toString2()+'" xmin="'+xmin+'" ymin="'+ymin+'" xmax="'+xmax+'" ymax="'+ymax+'">'+
+				'<point x="'+point.x()+'" y="'+point.y()+'" z="'+point.z()+'"/>'+
+				'<normal x="'+normal.x()+'" y="'+normal.y()+'" z="'+normal.z()+'"/>'+
+				'</rectangle>';
+			};
+			var toData=function(){return {};};
+			var setSvg=function(svg_){
+				thisSvg=svg_;
+			};
+			var remove=function(){
+				thisSvg.remove();
+				for(var i in borders){
+					LineSegmentFactory.removeLineSegment(borders[i]);
+				}
+			};
+			var setBorders=function(){
+				var cornerPoints=getPairwiseCornerPoints();
+				for(var i in cornerPoints){
+					borders[i].setFromTo(cornerPoints[i][0],cornerPoints[i][1]);
+				}
+			};
+			var makeBorders=function(){
+				borders=[];
+				var cornerPoints=getPairwiseCornerPoints();
+				for(var i in cornerPoints){
+					borders.push(LineSegmentFactory.makeLineSegment(cornerPoints[i][0],cornerPoints[i][1], color, 1));
+				}
+			};
+			setAxes();
+			makeBorders();
+			return {
+				draw: draw,
+				setColor: setColor,
+				setSvg: function(svg_){setSvg(svg_);return this;},
+				toString: toString,
+				toData: toData,
+				point: function(){return point;},
+				normal: function(){return normal;},
+				color: function(){return color;},
+				setPointAndNormal: setPointAndNormal,
+				highlightOn: highlightOn,
+				highlightOff: highlightOff,
+				remove: remove,
+				shapeAttributes: function(){return shapeAttributes;},
+				setShapeAttributes: function(attrs_){setShapeAttributes(attrs_); return this;}
+			};
+		};
+		var makeRectangle=function(point, normal, color, xmin, xmax, ymin, ymax){
+			var svgThing=svg.addPlane(0,0,0,0,0,0,0,0, color);
+			var r=Rectangle(point, normal, color, xmin, xmax, ymin, ymax).setSvg(svgThing);
+			rectangles.push(r);
+			return r;
+		};
+		var draw=function(){for(var i=0;i<rectangles.length;i++){rectangles[i].draw();}};
+		return {
+			makeRectangle: makeRectangle,
+			draw: draw,
+			rectangles: function(){return rectangles;}
 		};
 	})();
 
@@ -1052,6 +1223,7 @@ var SvgScene=function(){
 		LineLineFactory.draw();
 		PlaneFactory.draw();
 		SphereFactory.draw();
+		RectangleFactory.draw();
 	};
 
 	var sceneXml=function(){
@@ -1067,6 +1239,10 @@ var SvgScene=function(){
 		var spheres=SphereFactory.spheres();
 		for(var i=0;i<spheres.length;i++){
 			s+=spheres[i].toString();
+		}
+		var rectangles=RectangleFactory.rectangles();
+		for(var i=0;i<rectangles.length;i++){
+			s+=rectangles[i].toString();
 		}
 		s=s.replace(/"\d+?\.\d+?[eE]-\d+?"/g,"\"0\"");
 		return s+'</group>'+viewPort.toString(Settings.getCurrentResolution())+'</scene>';
@@ -2521,6 +2697,7 @@ var SvgScene=function(){
 						}
 						if(shape.shapeAttributes){shapeMade.setShapeAttributes(ShapeAttributeSet(shape.shapeAttributes));}
 					}
+					RectangleFactory.makeRectangle(Point(0,0,0), Point(0,1,0), Color(255,0,0), 0, 1, 0, 1);
 					console.log("finish adding shapes");
 				}
 				var w_=whereSvg.offsetWidth;
@@ -2545,6 +2722,7 @@ var SvgScene=function(){
 			whereSvg.onload=function(){
 				if(currentOnLoad){currentOnLoad();}
 				if(window.location.hash){
+					console.log("there's a hash");
 					loadThings(JSON.parse(Interaction.getHash().substr(1)));
 				}
 				else if(things_){
