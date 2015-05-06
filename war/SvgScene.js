@@ -650,7 +650,6 @@ var SvgScene=function(){
 		};
 	})();
 
-
 	var PlaneFactory=(function(){
 		var planes=[];
 		var PlaneFunctions=function(){
@@ -937,6 +936,7 @@ var SvgScene=function(){
 				ymin=ymin_;
 				ymax=ymax_;
 				setCorners();
+				setBorders();
 			};
 			var toString=function(){
 				return '<rectangle '+shapeAttributes.toString()+'color="'+color.toString2()+'" xmin="'+xmin+'" ymin="'+ymin+'" xmax="'+xmax+'" ymax="'+ymax+'">'+
@@ -978,7 +978,12 @@ var SvgScene=function(){
 				point: function(){return point;},
 				normal: function(){return normal;},
 				color: function(){return color;},
+				xmin: function(){return xmin;},
+				ymin: function(){return ymin;},
+				xmax: function(){return xmax;},
+				ymax: function(){return ymax;},
 				setPointAndNormal: setPointAndNormal,
+				setRange: setRange,
 				highlightOn: highlightOn,
 				highlightOff: highlightOff,
 				remove: remove,
@@ -2361,6 +2366,52 @@ var SvgScene=function(){
 						row.appendChild(contentDiv);
 						return row;
 					},
+					"rectangle": function(rectangle){
+						var content=document.createElement('div');
+						var newpoint=rectangle.point();
+						var newnormal=rectangle.normal();
+						var newcolor=rectangle.color();
+						var newXMin=rectangle.xmin();
+						var newXMax=rectangle.xmax();
+						var newYMin=rectangle.ymin();
+						var newYMax=rectangle.ymax();
+						var newshapeAttributes=rectangle.shapeAttributes();
+						var pointEditor=this["pointBox"](newpoint.x(), newpoint.y(), newpoint.z(), function(x,y,z){
+							newpoint=Point(x,y,z);
+						}, true);
+						var normalEditor=this["pointBox"](newnormal.x(), newnormal.y(), newnormal.z(), function(x,y,z){
+							newnormal=Point(x,y,z);
+						}, true);
+						var colorEditor=this["colorBox"](newcolor,function(color_){newcolor=color_;});
+						var xMinEditor=this["valueBox"]('', newXMin, function(v){newXMin=v;});
+						var xMaxEditor=this["valueBox"]('', newXMax, function(v){newXMax=v;});
+						var yMinEditor=this["valueBox"]('', newYMin, function(v){newYMin=v;});
+						var yMaxEditor=this["valueBox"]('', newYMax, function(v){newYMax=v;});
+						var shapeAttributesEditor=this["shapeAttributesBox"](newshapeAttributes, function(attrs_){newshapeAttributes=attrs_;});
+						content.appendChild(this["propertyRow"]('point: ', pointEditor.box));
+						content.appendChild(this["propertyRow"]('normal:', normalEditor.box));
+						content.appendChild(this["propertyRow"]('color:', colorEditor.box));
+						content.appendChild(this["propertyRow"]('xmin: ', xMinEditor.box));
+						content.appendChild(this["propertyRow"]('xmax: ', xMaxEditor.box));
+						content.appendChild(this["propertyRow"]('ymin: ', yMinEditor.box));
+						content.appendChild(this["propertyRow"]('ymax: ', yMaxEditor.box));
+						content.appendChild(this["propertyRow"]('shape attributes:', shapeAttributesEditor.box, 120));
+						var onEdit=function(){
+							pointEditor.onEdit();
+							normalEditor.onEdit();
+							colorEditor.onEdit();
+							shapeAttributesEditor.onEdit();
+							xMinEditor.onEdit();
+							xMaxEditor.onEdit();
+							yMinEditor.onEdit();
+							yMaxEditor.onEdit();
+							rectangle.setPointAndNormal(newpoint, newnormal);
+							rectangle.setColor(newcolor);
+							rectangle.setShapeAttributes(newshapeAttributes);
+							rectangle.setRange(newXMin, newXMax, newYMin, newYMax);
+						};
+						return {row: this["rowContainer"]("rectangle",content,function(){rectangle.highlightOn();}, function(){rectangle.highlightOff();}, function(){}, function(){}), onEdit:onEdit};
+					},
 					"plane": function(plane){
 						var content=document.createElement("div");
 						var newpoint=plane.point();
@@ -2452,6 +2503,12 @@ var SvgScene=function(){
 				var spheres=SphereFactory.spheres();
 				for(var i=0;i<spheres.length;i++){
 					row=makeRow["sphere"](spheres[i]);
+					onEdits.push(row.onEdit);
+					rows.push(row.row);
+				}
+				var rectangles=RectangleFactory.rectangles();
+				for(var i=0;i<rectangles.length;i++){
+					row=makeRow["rectangle"](rectangles[i]);
 					onEdits.push(row.onEdit);
 					rows.push(row.row);
 				}
