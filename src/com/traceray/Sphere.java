@@ -75,6 +75,7 @@ abstract class Shape{
 	public abstract Shape rotate(Rotation r);
     public abstract Shape translate(Point p);
     public abstract double distanceFrom(Point p);
+    //TODO: public double distanceFrom(Point p, Point direction)
     public abstract double distanceFromEdgeOfProjection(Point p, Point direction);
     public abstract Point directionOfCenter(Point p);
     public abstract double viewAngle(Point p);
@@ -216,7 +217,7 @@ class Sphere extends Shape{
     }
     public double distanceFromEdgeOfProjection(Point p, Point direction){
     	if(!fromOutside(p, direction)){return -1;}
-    	return Math.abs(this.radius-this.center.minus(p.plus(direction.project(this.center.minus(p)))).norm());
+    	return this.radius-this.center.minus(p.plus(direction.project(this.center.minus(p)))).norm();
     }
     public Point directionOfCenter(Point p){
         if(p.minus(this.center).isZero()){return Point.unitX;}
@@ -454,28 +455,34 @@ class RectangleSection extends ShapeSection<Plane>{
     	return this.center.minus(p).unit();
     }
     public double distanceFromEdgeOfProjection(Point p, Point direction){
-//    	Point relP=p.minus(this.center);
-//    	double shorten=normal(p).dot(direction.unit());
-//    	
-//    	double angle=Math.acos(relP.unit().dot(direction.projectOnPlane(Point.origin, normal(p)).unit()));
-//    	Point newP=this.center.plus(relP.rotate(Point.origin, relP.cross(direction), angle));
-    	if(s.contains(p)){
-    		double[] tbc=new double[]{Math.abs(x(p)-x1), Math.abs(x(p)-x2), Math.abs(y(p)-y1), Math.abs(y(p)-y2)};
-        	double smallest=tbc[0];
-        	for(int i=1;i<4;i++){
-        		if(tbc[i]<smallest){smallest=tbc[i];}
-        	}
-        	return smallest*normal(p).dot(direction.unit());
-    	}else{
-    		double e,d=-1;
-    		for(int i=0;i<4;i++){
-    			e=this.corners[i].minus(p).projectOnPlane(Point.origin, direction).norm();
-    			if(d==-1){d=e;}else{
-    				if(e<=d){d=e;}
-    			}
+    	Point newP=Line.intersection(new Line(p, p.plus(direction)), this.center, normal(p));
+    	double x=x(newP);
+    	double y=y(newP);
+    	double fromX=Math.min(Math.abs(x-x1), Math.abs(x-x2));
+    	double fromY=Math.min(Math.abs(y-y1), Math.abs(y-y2));
+    	double smallest;
+    	if(x>=x1&&x<=x2){
+    		if(y>=y1&&y<=y2){
+    			smallest=Math.min(fromX, fromY);
     		}
-    		return d;
+    		else{
+    			smallest=-fromY;
+    		}
+    	}else{
+    		if(y>=y1&&y<=y2){
+    			smallest=-fromX;
+    		}else{
+    			smallest=-Math.sqrt(fromX*fromX+fromY*fromY);
+    		}
     	}
+    	
+//    	double[] tbc=new double[]{Math.abs(x-x1), Math.abs(x-x2), Math.abs(y-y1), Math.abs(y-y2)};
+//        smallest=tbc[0];
+//        for(int i=1;i<4;i++){
+//        	if(tbc[i]<smallest){smallest=tbc[i];}
+//        }
+        return smallest*normal(p).dot(direction.unit());
+    	
     }
     public boolean containsXY(double x, double y){
         return x>=x1&&x<=x2&&y>=y1&&y<=y2;

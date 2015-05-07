@@ -161,13 +161,13 @@ public class Scene {
 			s=shapes.get(i);
 			if(s.contains(p)){d=s.distanceFromEdgeOfProjection(p, direction);}
 		}
-		for(int i=0;i<shapes.size();i++){
-			s=shapes.get(i);
-			if(!s.contains(p)&&direction.dot(s.directionOfCenter(p))>0){
-				e=s.distanceFromEdgeOfProjection(p, direction);
-				if(e<=max-d){d=d+e;}
-			}
-		}
+//		for(int i=0;i<shapes.size();i++){
+//			s=shapes.get(i);
+//			if(!s.contains(p)&&direction.dot(s.directionOfCenter(p))>0){
+//				e=s.distanceFromEdgeOfProjection(p, direction);
+//				if(e<=max-d){d=d+e;}
+//			}
+//		}
 		return d;
 	}
 	public double transparency(Point p, Point direction){
