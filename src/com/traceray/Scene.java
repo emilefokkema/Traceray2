@@ -49,28 +49,16 @@ public class Scene {
 		if(between.length==0){
 			return initial;
 		}else{
-			for(int i=0;i<between.length;i++){if(curvature(between[i], ls.location.minus(p))==0){return 0;}}
-			if(between.length%2!=0){return 0;}
-			Point p1=between[0], n1=normal(between[0]), p2, n2;
-			Line c;
-			double angle=0, maxAngle=0;
+			double maxLightSourceAngle=ls.radius/toLight.norm();
+			double dep, angle=0, maxAngle=-1;
 			for(int i=0;i<between.length;i++){
-				if(i%2==0){
-					p1=between[i];
-					n1=normal(p1);
-				}else{
-					p2=between[i];
-					n2=normal(p2);
-					if(n1.minus(n2).norm()<0.35){angle=0;}else{
-						c=Line.intersectPlanes(p1, n1, p2, n2);
-						if(c!=null){
-							angle=Line.smallestAngle(p, toLight, c);
-						}else{maxAngle=Math.PI/2;}
-					}
+				dep=distanceFromEdgeOfProjection(between[i], toLight, maxLightSourceAngle*between[i].minus(p).norm());
+				if(dep>0){
+					angle=dep/between[i].minus(p).norm();
 					if(angle>=maxAngle){maxAngle=angle;}
 				}
 			}
-			double maxLightSourceAngle=ls.radius/toLight.norm();
+			if(maxAngle==-1){return 0;}
 			if(maxAngle>maxLightSourceAngle){return 0;}else{return initial*Math.max(0, 1-maxAngle/maxLightSourceAngle);}
 		}
 	}
@@ -88,14 +76,16 @@ public class Scene {
                 MyColor d=new MyColor(0),e=new MyColor(0);
 				double reflection=fromOutside(closest, currentDirection)?reflection(closest, currentDirection):0;
 				double transparency=transparency(closest, currentDirection);
-				Point nextDirection=reflect(closest, currentDirection);
+				double shininess=shininess(closest, currentDirection);
+				double diffusion=diffusion(closest, currentDirection);
+				Point nextDirection=null;
 				double roughness=roughness(closest, currentDirection);
                 //Point nextDirection3=currentDirection.plus(s.normal(closest).project(currentDirection).scale(-2));
                 //smoothness=Math.pow(Math.max(0, nextDirection.unit().dot(nextDirection3.unit())), Math.pow(currentDirection.norm(), 1.2));
 				if(reflection>0){
 					
                     
-
+					nextDirection=reflect(closest, currentDirection);
 					d=getNextColor(closest, nextDirection, depth-1).scale(reflection);
 					if(roughness>0){
 						MyColor d1;
@@ -116,8 +106,11 @@ public class Scene {
 				for(LightSource ls:lightSources){
 					double howMuch=illumination(ls, closest);
 					MyColor lsc=ls.color;
-					c=c.add(lsc.scale(howMuch).scale(diffusion(closest, currentDirection)));
-					c=c.add(lsc.scale(visibility(ls, closest, nextDirection)).scale(shininess(closest, currentDirection)));
+					c=c.add(lsc.scale(howMuch).scale(diffusion));
+					if(shininess>0){
+						if(nextDirection==null){nextDirection=reflect(closest, currentDirection);}
+						c=c.add(lsc.scale(visibility(ls, closest, nextDirection)).scale(shininess));
+					}
 				}
 				
 			}
@@ -160,6 +153,22 @@ public class Scene {
 			if(shapes.get(i).contains(p)){return shapes.get(i).color(p);}
 		}
 		return new MyColor(0);
+	}
+	public double distanceFromEdgeOfProjection(Point p, Point direction, double max){
+		double e,d=-1;
+		Shape s;
+		for(int i=0;i<shapes.size();i++){
+			s=shapes.get(i);
+			if(s.contains(p)){d=s.distanceFromEdgeOfProjection(p, direction);}
+		}
+		for(int i=0;i<shapes.size();i++){
+			s=shapes.get(i);
+			if(!s.contains(p)&&direction.dot(s.directionOfCenter(p))>0){
+				e=s.distanceFromEdgeOfProjection(p, direction);
+				if(e<=max-d){d=d+e;}
+			}
+		}
+		return d;
 	}
 	public double transparency(Point p, Point direction){
 		for(int i=0;i<shapes.size();i++){

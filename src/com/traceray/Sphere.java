@@ -75,6 +75,7 @@ abstract class Shape{
 	public abstract Shape rotate(Rotation r);
     public abstract Shape translate(Point p);
     public abstract double distanceFrom(Point p);
+    public abstract double distanceFromEdgeOfProjection(Point p, Point direction);
     public abstract Point directionOfCenter(Point p);
     public abstract double viewAngle(Point p);
     public Shape add(ColorPattern pattern){
@@ -103,7 +104,6 @@ abstract class Shape{
     	//return direction;
         double dot=direction.unit().dot(normal(p));
         if(fromOutside(p, direction)){
-            double angle=Math.acos(-dot);
             double oldSine=direction.minus(normal(p).project(direction)).norm()/direction.norm();
             double newSine=oldSine*this.refractionIndex;
             double newCosine=Math.cos(Math.asin(newSine));
@@ -214,6 +214,10 @@ class Sphere extends Shape{
     public double distanceFrom(Point p){
         return Math.abs(this.radius-p.minus(this.center).norm());
     }
+    public double distanceFromEdgeOfProjection(Point p, Point direction){
+    	if(!fromOutside(p, direction)){return -1;}
+    	return Math.abs(this.radius-this.center.minus(p.plus(direction.project(this.center.minus(p)))).norm());
+    }
     public Point directionOfCenter(Point p){
         if(p.minus(this.center).isZero()){return Point.unitX;}
         if(p.minus(this.center).norm()<this.radius){return p.minus(this.center).unit();}
@@ -249,6 +253,9 @@ class Plane extends Shape{
 	public Point normal;
 	public Point xAxis;
 	public Point yAxis;
+	public Point pointWithCoords(double x, double y){
+		return this.point.plus(this.xAxis.scale(x)).plus(this.yAxis.scale(y));
+	}
 	public Plane(Point point, Point normal, MyColor color){
 		this.point=point;
 		this.normal=normal.unit();
@@ -292,6 +299,9 @@ class Plane extends Shape{
     }
     public double distanceFrom(Point p){
         return this.normal.project(p.minus(this.point)).norm();
+    }
+    public double distanceFromEdgeOfProjection(Point p, Point direction){
+    	return -1;
     }
     public Point directionOfCenter(Point p){
         return this.normal.project(this.point.minus(p)).unit();
@@ -426,15 +436,46 @@ abstract class ShapeSection<T extends Shape> extends Shape{
 }
 class RectangleSection extends ShapeSection<Plane>{
     public double x1, y1, x2, y2;
+    public Point center;
+    public Point[] corners;
     public RectangleSection(Plane p,  double x1, double y1, double x2, double y2){
         this.s=p;
         this.x1=Math.min(x1, x2);
         this.y1=Math.min(y1, y2);
         this.x2=Math.max(x1, x2);
-        this.y2=Math.max(y1, y2);;
+        this.y2=Math.max(y1, y2);
+        this.center=s.pointWithCoords((x1+x2)/2, (y1+y2)/2);
+        this.corners=new Point[]{s.pointWithCoords(x1,y1), s.pointWithCoords(x2,y1),s.pointWithCoords(x2, y2), s.pointWithCoords(x1, y2)};
     }
     public boolean fromOutside(Point p, Point direction){
         return true;
+    }
+    public Point directionOfCenter(Point p){
+    	return this.center.minus(p).unit();
+    }
+    public double distanceFromEdgeOfProjection(Point p, Point direction){
+//    	Point relP=p.minus(this.center);
+//    	double shorten=normal(p).dot(direction.unit());
+//    	
+//    	double angle=Math.acos(relP.unit().dot(direction.projectOnPlane(Point.origin, normal(p)).unit()));
+//    	Point newP=this.center.plus(relP.rotate(Point.origin, relP.cross(direction), angle));
+    	if(s.contains(p)){
+    		double[] tbc=new double[]{Math.abs(x(p)-x1), Math.abs(x(p)-x2), Math.abs(y(p)-y1), Math.abs(y(p)-y2)};
+        	double smallest=tbc[0];
+        	for(int i=1;i<4;i++){
+        		if(tbc[i]<smallest){smallest=tbc[i];}
+        	}
+        	return smallest*normal(p).dot(direction.unit());
+    	}else{
+    		double e,d=-1;
+    		for(int i=0;i<4;i++){
+    			e=this.corners[i].minus(p).projectOnPlane(Point.origin, direction).norm();
+    			if(d==-1){d=e;}else{
+    				if(e<=d){d=e;}
+    			}
+    		}
+    		return d;
+    	}
     }
     public boolean containsXY(double x, double y){
         return x>=x1&&x<=x2&&y>=y1&&y<=y2;

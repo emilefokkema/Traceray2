@@ -849,6 +849,7 @@ var SvgScene=function(){
 	var RectangleFactory=(function(){
 		var rectangles=[];
 		var Rectangle=function(point_, normal_, color_, xmin_, xmax_, ymin_, ymax_){
+			var normalArrow=LineSegmentFactory.makeArrow(point_, point_.plus(normal_), color_, 3);
 			var point, normal, color, thisSvg, borders, xAxis, yAxis, shapeAttributes, xmin, xmax, ymin, ymax, corners;
 			point=point_;
 			normal=normal_;
@@ -906,16 +907,19 @@ var SvgScene=function(){
 			};
 			var setColor=function(color_){
 				color=color_;
+				normalArrow.setColor(color_);
 				thisSvg.setColor(color_);
 				for(var i in borders){borders[i].setColor(color_);}
 			};
 			var highlightOn=function(){
+				normalArrow.highlightOn();
 				thisSvg.highlightOn();
 				for(var i=0;i<borders.length;i++){
 					borders[i].highlightOn();
 				}
 			};
 			var highlightOff=function(){
+				normalArrow.highlightOff();
 				thisSvg.highlightOff();
 				for(var i=0;i<borders.length;i++){
 					borders[i].highlightOff();
@@ -926,6 +930,7 @@ var SvgScene=function(){
 					if(normal_.norm()==0){alert("A zero normal for a rectangle? Let's not.");return;}
 					point=point_;
 					normal=normal_;
+					normalArrow.setFromTo(point_, point_.plus(normal_));
 					setAxes();
 					setBorders();
 				}
@@ -944,11 +949,24 @@ var SvgScene=function(){
 				'<normal x="'+normal.x()+'" y="'+normal.y()+'" z="'+normal.z()+'"/>'+
 				'</rectangle>';
 			};
-			var toData=function(){return {};};
+			var toData=function(){
+				var d={};
+				d.type="rectangle";
+				d.point=point.toData();
+				d.normal=normal.toData();
+				d.color=color.toData();
+				d.xmin=xmin;
+				d.xmax=xmax;
+				d.ymin=ymin;
+				d.ymax=ymax;
+				d.shapeAttributes=shapeAttributes.toData();
+				return d;
+			};
 			var setSvg=function(svg_){
 				thisSvg=svg_;
 			};
 			var remove=function(){
+				normalArrow.remove();
 				thisSvg.remove();
 				for(var i in borders){
 					LineSegmentFactory.removeLineSegment(borders[i]);
@@ -997,11 +1015,21 @@ var SvgScene=function(){
 			rectangles.push(r);
 			return r;
 		};
+		var removeRectangle=function(rectangle){
+			rectangle.remove();
+			var index=rectangles.indexOf(rectangle);
+			rectangles.splice(index, 1);
+		};
+		var cloneRectangle=function(rectangle){
+			makeRectangle(rectangle.point(), rectangle.normal(), rectangle.color().clone(), rectangle.xmin(), rectangle.xmax(), rectangle.ymin(), rectangle.ymax()).setShapeAttributes(rectangle.shapeAttributes().clone());
+		};
 		var draw=function(){for(var i=0;i<rectangles.length;i++){rectangles[i].draw();}};
 		return {
 			makeRectangle: makeRectangle,
 			draw: draw,
-			rectangles: function(){return rectangles;}
+			rectangles: function(){return rectangles;},
+			removeRectangle: removeRectangle,
+			cloneRectangle: cloneRectangle
 		};
 	})();
 
@@ -1268,6 +1296,10 @@ var SvgScene=function(){
 		var spheres=SphereFactory.spheres();
 		for(var i=0;i<spheres.length;i++){
 			shapes.push(spheres[i].toData());
+		}
+		var rectangles=RectangleFactory.rectangles();
+		for(var i=0;i<rectangles.length;i++){
+			shapes.push(rectangles[i].toData());
 		}
 		d.shapes=shapes;
 		return d;
@@ -2073,7 +2105,8 @@ var SvgScene=function(){
 					var button1=makeButton(null,'plane',function(){hide();PlaneFactory.makePlane(Point(0,0,0),Point(0,1,0),Color(255,255,255).setReflectable(true));drawThings();showShapeList(sceneShapeList());}, function(){}, 1, {width:150,height:50}).getNode();
 					var button2=makeButton(null,'sphere',function(){hide();SphereFactory.makeSphere(Point(0,0,0),0.1,Color(255,255,255).setReflectable(true));drawThings();showShapeList(sceneShapeList());}, function(){}, 1, {width:150,height:50}).getNode();
 					var button3=makeButton(null,'light source',function(){hide();SphereFactory.makeLightSource(Point(0,0,0),0.1,Color(255,255,255).setReflectable(true));drawThings();showShapeList(sceneShapeList());}, function(){}, 1, {width:150,height:50}).getNode();
-					dropDown.appendChild(makeTable([[button1],[button2],[button3]]));
+					var button4=makeButton(null,'rectangle',function(){hide();RectangleFactory.makeRectangle(Point(0,0,0),Point(0,1,0),Color(255,255,255).setReflectable(true), 0,1,0,1);drawThings();showShapeList(sceneShapeList());}, function(){}, 1, {width:150,height:50}).getNode();
+					dropDown.appendChild(makeTable([[button1],[button2],[button3],[button4]]));
 					shapeListDialog.appendChild(dropDown);
 					var hide=function(){dropDown.style.display="none";};
 					return {show: function(){dropDown.style.display="initial";},hide:hide};
@@ -2410,7 +2443,7 @@ var SvgScene=function(){
 							rectangle.setShapeAttributes(newshapeAttributes);
 							rectangle.setRange(newXMin, newXMax, newYMin, newYMax);
 						};
-						return {row: this["rowContainer"]("rectangle",content,function(){rectangle.highlightOn();}, function(){rectangle.highlightOff();}, function(){}, function(){}), onEdit:onEdit};
+						return {row: this["rowContainer"]("rectangle",content,function(){rectangle.highlightOn();}, function(){rectangle.highlightOff();}, function(){RectangleFactory.removeRectangle(rectangle);}, function(){RectangleFactory.cloneRectangle(rectangle);}), onEdit:onEdit};
 					},
 					"plane": function(plane){
 						var content=document.createElement("div");
@@ -2751,10 +2784,11 @@ var SvgScene=function(){
 							case "sphere": shapeMade=SphereFactory.makeSphere(makePoint(shape.center),shape.radius, makeColor(shape.color)); break;
 							case "plane": shapeMade=PlaneFactory.makePlane(makePoint(shape.point), makePoint(shape.normal), makeColor(shape.color)); break;
 							case "lightsource": shapeMade=SphereFactory.makeLightSource(makePoint(shape.center),shape.radius, makeColor(shape.color)); break;
+							case "rectangle": shapeMade=RectangleFactory.makeRectangle(makePoint(shape.point), makePoint(shape.normal), makeColor(shape.color), shape.xmin, shape.xmax, shape.ymin, shape.ymax); break;
 						}
 						if(shape.shapeAttributes){shapeMade.setShapeAttributes(ShapeAttributeSet(shape.shapeAttributes));}
 					}
-					RectangleFactory.makeRectangle(Point(0,0,0), Point(0,1,0), Color(255,0,0), 0, 1, 0, 1);
+					//RectangleFactory.makeRectangle(Point(0,0,0), Point(0,1,0), Color(255,0,0), 0, 1, 0, 1);
 					console.log("finish adding shapes");
 				}
 				var w_=whereSvg.offsetWidth;

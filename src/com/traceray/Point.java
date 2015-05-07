@@ -122,6 +122,18 @@ public class Point{
 		}
 		return p;
 	}
+	public Point rotate(Point around, Point direction, double angle){
+		Point op=this.minus(around);
+		Point opUnchanged=direction.project(op);
+		op=op.minus(opUnchanged);
+		if(op.norm()>0){
+			Point yAxis=direction.cross(op);
+			op=op.scale(Math.cos(angle)).plus(yAxis.unit().scale(op.norm()*Math.sin(angle)));
+			return around.plus(opUnchanged).plus(op);
+		}else{
+			return new Point(this.x, this.y, this.z);
+		}
+	}
 	public Point rotate(Point around, int axis, double angle){
 		Point op=this.minus(around);
 		if(axis==0){
