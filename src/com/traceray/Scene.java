@@ -40,6 +40,37 @@ public class Scene {
 		double maxangle=ls.radius/distance.norm();
 		if(angle<=maxangle){return 1-angle/maxangle;}else{return 0;}
 	}
+	public double illumination2(LightSource ls, Point p){
+		Point direction=ls.location.minus(p);
+		double initial=Math.max(0, normal(p).dot(direction.unit()));
+		double dn=direction.norm();
+		double maxLightSourceAngle=ls.radius/dn;
+		double addToAngle, dfp, dfpd, dfe,angle=0;
+		Shape s;
+		for(int i=0;i<shapes.size();i++){
+			s=shapes.get(i);
+			dfp=s.distanceFrom(p);
+			dfpd=s.distanceFrom(p, direction);
+			if(!s.contains(p)&&dfp<dn&&dfpd<dn&&direction.dot(s.directionOfCenter(p))>0){
+				dfe=s.distanceFromEdgeOfProjection(p, direction);
+				addToAngle=0;
+				if(dfpd>0){
+					addToAngle=(dfe/dfpd+maxLightSourceAngle)/2;
+					//addToAngle=0;
+					}else{
+					addToAngle=(dfe/dfp+maxLightSourceAngle)/2;
+					//addToAngle=0;
+				}
+				if(addToAngle<0){addToAngle=0;}
+				angle+=addToAngle;
+				if(angle>maxLightSourceAngle){angle=maxLightSourceAngle;}
+				if(angle<-maxLightSourceAngle){angle=-maxLightSourceAngle;}
+			}
+		}
+		//return initial;
+		if(angle>maxLightSourceAngle){return 0;}else{return initial*Math.max(0, 1-angle/maxLightSourceAngle);}
+		//return 1;
+	}
 	public double illumination(LightSource ls, Point p){
 		Line toLightSource=new Line(p, ls.location);
 		Point[] intersections=intersect(toLightSource);
@@ -104,7 +135,7 @@ public class Scene {
 				}
 				c=c.add(color(closest).add(d).add(e));
 				for(LightSource ls:lightSources){
-					double howMuch=illumination(ls, closest);
+					double howMuch=illumination2(ls, closest);
 					MyColor lsc=ls.color;
 					c=c.add(lsc.scale(howMuch).scale(diffusion));
 					if(shininess>0){

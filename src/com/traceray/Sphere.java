@@ -75,7 +75,7 @@ abstract class Shape{
 	public abstract Shape rotate(Rotation r);
     public abstract Shape translate(Point p);
     public abstract double distanceFrom(Point p);
-    //TODO: public double distanceFrom(Point p, Point direction)
+    public abstract double distanceFrom(Point p, Point direction);
     public abstract double distanceFromEdgeOfProjection(Point p, Point direction);
     public abstract Point directionOfCenter(Point p);
     public abstract double viewAngle(Point p);
@@ -215,6 +215,14 @@ class Sphere extends Shape{
     public double distanceFrom(Point p){
         return Math.abs(this.radius-p.minus(this.center).norm());
     }
+    public double distanceFrom(Point p, Point direction){
+    	Point cmp=this.center.minus(p);
+    	double cmpn=cmp.norm();
+    	double sin=this.radius/cmpn;
+    	if(direction.unit().dot(cmp)<Math.sqrt(1-sin*sin)){return -1;}else{
+    		return Math.abs(this.radius-cmpn);
+    	}
+    }
     public double distanceFromEdgeOfProjection(Point p, Point direction){
     	if(!fromOutside(p, direction)){return -1;}
     	return this.radius-this.center.minus(p.plus(direction.project(this.center.minus(p)))).norm();
@@ -300,6 +308,14 @@ class Plane extends Shape{
     }
     public double distanceFrom(Point p){
         return this.normal.project(p.minus(this.point)).norm();
+    }
+    public double distanceFrom(Point p, Point direction){
+    	double ddn=direction.unit().dot(normal.unit());
+    	if(ddn!=0){
+    		return distanceFrom(p)/ddn;
+    	}else{
+    		return -1;
+    	}
     }
     public double distanceFromEdgeOfProjection(Point p, Point direction){
     	return -1;
@@ -454,8 +470,34 @@ class RectangleSection extends ShapeSection<Plane>{
     public Point directionOfCenter(Point p){
     	return this.center.minus(p).unit();
     }
+    public double distanceFrom(Point p){
+    	Point inPlane=p.projectOnPlane(s.point, s.normal);
+    	if(contains(inPlane)){
+    		return p.minus(inPlane).norm();
+    	}else{
+    		double e,d=-1;
+        	Point c;
+        	for(int i=0;i<4;i++){
+        		c=this.corners[i];
+        		e=p.minus(c).norm();
+        		if(d==-1){d=e;}else{
+        			if(e<=d){d=e;}
+        		}
+        	}
+        	return d;
+    	}
+    }
+    public double distanceFrom(Point p, Point direction){
+    	double dfe=distanceFromEdgeOfProjection(p, direction);
+    	if(dfe<0){return -1;}else{
+    		return distanceFrom(p);
+    	}
+    }
     public double distanceFromEdgeOfProjection(Point p, Point direction){
     	Point newP=Line.intersection(new Line(p, p.plus(direction)), this.center, normal(p));
+    	if(newP==null){
+    		return p.minus(p.projectOnPlane(s.point, s.normal)).norm();
+    	}
     	double x=x(newP);
     	double y=y(newP);
     	double fromX=Math.min(Math.abs(x-x1), Math.abs(x-x2));
@@ -481,7 +523,7 @@ class RectangleSection extends ShapeSection<Plane>{
 //        for(int i=1;i<4;i++){
 //        	if(tbc[i]<smallest){smallest=tbc[i];}
 //        }
-        return smallest*normal(p).dot(direction.unit());
+        return smallest*Math.abs(normal(p).dot(direction.unit()));
     	
     }
     public boolean containsXY(double x, double y){
