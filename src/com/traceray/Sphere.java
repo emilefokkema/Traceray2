@@ -468,29 +468,43 @@ class RectangleSection extends ShapeSection<Plane>{
         return true;
     }
     public Point directionOfCenter(Point p){
-    	return this.center.minus(p).unit();
-    }
-    public double distanceFrom(Point p){
     	Point inPlane=p.projectOnPlane(s.point, s.normal);
     	if(contains(inPlane)){
-    		return p.minus(inPlane).norm();
+    		return inPlane.minus(p);
     	}else{
-    		double e,d=-1;
-        	Point c;
-        	for(int i=0;i<4;i++){
-        		c=this.corners[i];
-        		e=p.minus(c).norm();
-        		if(d==-1){d=e;}else{
-        			if(e<=d){d=e;}
-        		}
-        	}
-        	return d;
+    		double x=s.x(inPlane);
+    		double y=s.y(inPlane);
+    		if(x<x1){x=x1;}
+    		if(x>x2){x=x2;}
+    		if(y<y1){y=y1;}
+    		if(y>y2){y=y2;}
+    		return s.pointWithCoords(x, y).minus(p);
     	}
+    	//return this.center.minus(p).unit();
+    }
+    public double distanceFrom(Point p){
+//    	Point inPlane=p.projectOnPlane(s.point, s.normal);
+//    	if(contains(inPlane)){
+//    		return p.minus(inPlane).norm();
+//    	}else{
+//    		double e,d=-1;
+//        	Point c;
+//        	for(int i=0;i<4;i++){
+//        		c=this.corners[i];
+//        		e=p.minus(c).norm();
+//        		if(d==-1){d=e;}else{
+//        			if(e<=d){d=e;}
+//        		}
+//        	}
+//        	return d;
+//    	}
+    	return directionOfCenter(p).norm();
     }
     public double distanceFrom(Point p, Point direction){
     	double dfe=distanceFromEdgeOfProjection(p, direction);
     	if(dfe<0){return -1;}else{
-    		return distanceFrom(p);
+    		Point newP=Line.intersection(new Line(p, p.plus(direction)), this.center, normal(p));
+    		return newP.minus(p).norm();
     	}
     }
     public double distanceFromEdgeOfProjection(Point p, Point direction){

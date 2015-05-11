@@ -52,13 +52,14 @@ public class Scene {
 			dfp=s.distanceFrom(p);
 			dfpd=s.distanceFrom(p, direction);
 			if(!s.contains(p)&&dfp<dn&&dfpd<dn&&direction.dot(s.directionOfCenter(p))>0){
+//			if(!s.contains(p)&&dfp<dn&&dfpd<dn&&direction.dot(s.directionOfCenter(p))>0){
 				dfe=s.distanceFromEdgeOfProjection(p, direction);
 				addToAngle=0;
 				if(dfpd>0){
 					addToAngle=(dfe/dfpd+maxLightSourceAngle)/2;
 					//addToAngle=0;
 					}else{
-					addToAngle=(dfe/dfp+maxLightSourceAngle)/2;
+					addToAngle=(dfe/Math.abs(dfp)+maxLightSourceAngle)/2;
 					//addToAngle=0;
 				}
 				if(addToAngle<0){addToAngle=0;}
