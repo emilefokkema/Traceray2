@@ -1948,39 +1948,46 @@ var SvgScene=function(){
 				var spinner=(function(){
 					var w=40;
 					var h=40;
+					var r=15;
+					var partSize=0.2;
+					var lagSize=0.075;
+					var haltingness=0.75;
+					var tFactor=1.2;
+					var l,m;
 					var NS="http://www.w3.org/2000/svg";
 					var svgNode=document.createElementNS(NS,"svg");
 					svgNode.setAttribute('width',w);
 					svgNode.setAttribute('height',h);
-					var circle=function(){
-						var svg=document.createElementNS(NS, "circle");
-						svg.setAttribute('fill','#FFFFFF');
-						svg.setAttribute('r',4);
-						var setPos=function(x_,y_){
-							svg.setAttribute('cx', x_);
-							svg.setAttribute('cy',y_);
+					var linePart=function(){
+						var svg=document.createElementNS(NS, "line");
+						svg.setAttribute('stroke','#FFFFFF');
+						svg.setAttribute('stroke-width',3);
+						var setPos=function(theta1, theta2){
+							svg.setAttribute('x1', w/2+r*Math.cos(theta1));
+							svg.setAttribute('y1', h/2+r*Math.sin(theta1));
+							svg.setAttribute('x2', w/2+r*Math.cos(theta2));
+							svg.setAttribute('y2', h/2+r*Math.sin(theta2));
 						};
 						setPos(0,0);
-						return {node:svg,setPos:function(x_,y_){setPos(x_,y_);return this;}};
+						return {node: svg, setPos: function(t1,t2){setPos(t1,t2);return this;}};
 					};
-					var c1=circle();
-					var c2=circle();
-					svgNode.appendChild(c1.node);
-					svgNode.appendChild(c2.node);
-					var mover=function(pos, circle){
+					var mover=function(pos, l){
 						var t=0;
 						var move=function(){
-							var xy=pos(t);
-							circle.setPos(xy[0],xy[1]);
+							var theta=pos(t);
+							l.setPos(theta[0],theta[1]);
 							t+=0.1;
+							if(t>100){t=t-100;}
 							setTimeout(move, 20);
 						};
 						return {move:move};
+					};
+					for(var i=0;i<30;i++){
+						l=linePart();
+						svgNode.appendChild(l.node);
+						m=(function(i,l){return mover(function(t){return [tFactor*t+lagSize*i+Math.sin(t+lagSize*i)*haltingness, tFactor*t+lagSize*(i+1)+Math.sin(t+lagSize*(i+1))*haltingness];}, l);})(i,l);
+						m.move();
 					}
-					var m1=mover(function(t){return [20, 20+16*Math.sin(2*t)];}, c1);
-					var m2=mover(function(t){return [20+16*Math.cos(t), 20];}, c2);
-					m1.move();
-					m2.move();
 					return {node:svgNode};
 				})();
 				var button=makeButton({left:0,bottom:0},'>',function(){
@@ -2181,7 +2188,7 @@ var SvgScene=function(){
 							textbox.setAttribute('value',currentValue);
 							setValue=function(v){textbox.value=v;currentValue=v;};
 							onEdit=function(){edit(parseFloat(textbox.value));};
-							focus=function(){textbox.focus();};
+							focus=function(){textbox.focus();textbox.select();};
 							textbox.onblur=function(){currentValue=parseFloat(textbox.value);if(isShy){makeNonEditable();}};
 							return textbox;
 						})()]]);
