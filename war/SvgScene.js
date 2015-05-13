@@ -1260,7 +1260,7 @@ var SvgScene=function(){
 	};
 
 	var sceneXml=function(){
-		var s='<?xml version="1.0" encoding="UTF-8"?><scene xmlns="http://www.sogyo.nl/efokkema_raytrace" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" ><group>';
+		var s='<?xml version="1.0" encoding="UTF-8"?><scene xmlns="http://www.sogyo.nl/efokkema_raytrace" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" recursionDepth="'+Settings.getCurrentRecursionDepth()+'"><group>';
 		var planes=PlaneFactory.planes();
 		for(var i=0;i<planes.length;i++){
 			s+=planes[i].toString();
@@ -1429,6 +1429,7 @@ var SvgScene=function(){
 		var resolutionOptions=[];
 		var currentResolution;
 		var currentResolutionIndex;
+		var currentRecursionDepth=3;
 		var makeResolutionOptions=function(){
 			var initW, initH, w,h, roundW, roundH;
 			initW=viewPort.w();
@@ -1448,14 +1449,21 @@ var SvgScene=function(){
 				currentResolution=resolutionOptions[i];
 			}
 		};
+		var setRecursionDepth=function(d){
+			(function(r){currentRecursionDepth=Math.max(0,Math.round(r));})(typeof d==="string"?parseInt(d):d);
+
+		};
 		var getCurrentResolution=function(){return currentResolution;};
 		var getCurrentResolutionIndex=function(){return currentResolutionIndex;};
+		var getCurrentRecursionDepth=function(){return currentRecursionDepth;};
 		return {
 			makeResolutionOptions:makeResolutionOptions,
 			getResolutionOptions:getResolutionOptions,
 			setResolutionOption: setResolutionOption,
 			getCurrentResolution:getCurrentResolution,
 			getCurrentResolutionIndex:getCurrentResolutionIndex,
+			getCurrentRecursionDepth:getCurrentRecursionDepth,
+			setRecursionDepth: setRecursionDepth
 		};
 	})();
 
@@ -1944,6 +1952,48 @@ var SvgScene=function(){
 				return table;
 			};
 
+			var makeValueEditor=function(name, value, edit){
+				var currentValue=value;
+				var box=document.createElement('div');
+				box.setAttribute('style','width:70px;cursor:pointer');
+				var shorten=function(v){
+					var vs=v.toString();
+					if(vs.length>5){vs=vs.substring(0,4)+'...';}
+					return vs;
+				};
+				var isEditable;
+				var isShy=true;
+				var makeNonEditable=function(){
+					box.innerHTML='';
+					box.appendChild(document.createTextNode(name+shorten(currentValue)));
+					isEditable=false;
+				};
+				var makeEditable=function(){
+					if(!isEditable){
+						box.innerHTML='';box.appendChild(editable);isEditable=true;
+						focus();
+					}
+				};
+				var setValue;
+				var setShy=function(b){isShy=b;};
+				var onEdit;
+				var focus;
+				var editable=makeTable([[document.createTextNode(name),(function(){
+					var textbox=document.createElement('input');
+					textbox.setAttribute('type','text');
+					textbox.setAttribute('style','width:40px');
+					textbox.setAttribute('value',currentValue);
+					setValue=function(v){textbox.value=v;currentValue=v;};
+					onEdit=function(){edit(parseFloat(textbox.value));};
+					focus=function(){textbox.focus();textbox.select();};
+					textbox.onblur=function(){currentValue=parseFloat(textbox.value);if(isShy){makeNonEditable();}};
+					return textbox;
+				})()]]);
+				box.onclick=makeEditable;
+				makeNonEditable();
+				return {box:box,onEdit:onEdit, makeEditable:makeEditable, makeNonEditable: makeNonEditable, setShy:setShy, setValue:setValue};
+			};
+
 			svgObject.controls.push((function(){
 				var spinner=(function(){
 					var w=40;
@@ -2079,10 +2129,21 @@ var SvgScene=function(){
 					var onEdit=function(){Settings.setResolutionOption(selector.selectedIndex);};
 					return {row:row,onEdit:onEdit};
 				};
+				var makeRecursionDepthEditor=function(){
+					var row=document.createElement('div');
+					row.setAttribute('style','background-color:rgb(75, 75, 75);margin:10px;padding:2px;color:#FFFFFF;height:50px');
+					var rdEditor=makeValueEditor('', Settings.getCurrentRecursionDepth(), function(v){Settings.setRecursionDepth(v);});
+					row.appendChild(makeTable([[document.createTextNode('recursion depth:'), rdEditor.box]]));
+					var onEdit=function(){rdEditor.onEdit();};
+					return {row:row,onEdit:onEdit};
+				};
 				var rows=[];
 				var onEdits=[];
 				var row;
 				row=makeResolutionEditor();
+				onEdits.push(row.onEdit);
+				rows.push(row.row);
+				row=makeRecursionDepthEditor();
 				onEdits.push(row.onEdit);
 				rows.push(row.row);
 				var table=document.createElement('div');
@@ -2156,45 +2217,46 @@ var SvgScene=function(){
 						return {box:box,onEdit:onEdit};
 					},
 					"valueBox": function(name, value, edit){
-						var currentValue=value;
-						var box=document.createElement('div');
-						box.setAttribute('style','width:70px;cursor:pointer');
-						var shorten=function(v){
-							var vs=v.toString();
-							if(vs.length>5){vs=vs.substring(0,4)+'...';}
-							return vs;
-						};
-						var isEditable;
-						var isShy=true;
-						var makeNonEditable=function(){
-							box.innerHTML='';
-							box.appendChild(document.createTextNode(name+shorten(currentValue)));
-							isEditable=false;
-						};
-						var makeEditable=function(){
-							if(!isEditable){
-								box.innerHTML='';box.appendChild(editable);isEditable=true;
-								focus();
-							}
-						};
-						var setValue;
-						var setShy=function(b){isShy=b;};
-						var onEdit;
-						var focus;
-						var editable=makeTable([[document.createTextNode(name),(function(){
-							var textbox=document.createElement('input');
-							textbox.setAttribute('type','text');
-							textbox.setAttribute('style','width:40px');
-							textbox.setAttribute('value',currentValue);
-							setValue=function(v){textbox.value=v;currentValue=v;};
-							onEdit=function(){edit(parseFloat(textbox.value));};
-							focus=function(){textbox.focus();textbox.select();};
-							textbox.onblur=function(){currentValue=parseFloat(textbox.value);if(isShy){makeNonEditable();}};
-							return textbox;
-						})()]]);
-						box.onclick=makeEditable;
-						makeNonEditable();
-						return {box:box,onEdit:onEdit, makeEditable:makeEditable, makeNonEditable: makeNonEditable, setShy:setShy, setValue:setValue};
+						return makeValueEditor(name, value, edit);
+						// var currentValue=value;
+						// var box=document.createElement('div');
+						// box.setAttribute('style','width:70px;cursor:pointer');
+						// var shorten=function(v){
+						// 	var vs=v.toString();
+						// 	if(vs.length>5){vs=vs.substring(0,4)+'...';}
+						// 	return vs;
+						// };
+						// var isEditable;
+						// var isShy=true;
+						// var makeNonEditable=function(){
+						// 	box.innerHTML='';
+						// 	box.appendChild(document.createTextNode(name+shorten(currentValue)));
+						// 	isEditable=false;
+						// };
+						// var makeEditable=function(){
+						// 	if(!isEditable){
+						// 		box.innerHTML='';box.appendChild(editable);isEditable=true;
+						// 		focus();
+						// 	}
+						// };
+						// var setValue;
+						// var setShy=function(b){isShy=b;};
+						// var onEdit;
+						// var focus;
+						// var editable=makeTable([[document.createTextNode(name),(function(){
+						// 	var textbox=document.createElement('input');
+						// 	textbox.setAttribute('type','text');
+						// 	textbox.setAttribute('style','width:40px');
+						// 	textbox.setAttribute('value',currentValue);
+						// 	setValue=function(v){textbox.value=v;currentValue=v;};
+						// 	onEdit=function(){edit(parseFloat(textbox.value));};
+						// 	focus=function(){textbox.focus();textbox.select();};
+						// 	textbox.onblur=function(){currentValue=parseFloat(textbox.value);if(isShy){makeNonEditable();}};
+						// 	return textbox;
+						// })()]]);
+						// box.onclick=makeEditable;
+						// makeNonEditable();
+						// return {box:box,onEdit:onEdit, makeEditable:makeEditable, makeNonEditable: makeNonEditable, setShy:setShy, setValue:setValue};
 					},
 					"selectBox": function(name, optionNames, initialSelectedIndex, edit){
 						var box=document.createElement('div');

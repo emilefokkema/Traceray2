@@ -3,9 +3,10 @@
 	<xs:element name="scene">
 		<xs:complexType>
 			<xs:sequence>
-			<xs:element name="group" type="group" minOccurs="0" maxOccurs="unbounded"/>
-			<xs:element name="viewport" type="viewPort" minOccurs="0" maxOccurs="1"/>
+				<xs:element name="group" type="group" minOccurs="0" maxOccurs="unbounded"/>
+				<xs:element name="viewport" type="viewPort" minOccurs="0" maxOccurs="1"/>
 			</xs:sequence>
+			<xs:attribute name="recursionDepth" type="xs:integer" use="required" />
 		</xs:complexType>
 	</xs:element>
 	
