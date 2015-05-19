@@ -188,10 +188,10 @@ class Sphere extends Shape{
 		if(direction.dot(p.minus(this.center))<=0){return 1/this.radius;}else{return -1/this.radius;}
 	}
 	public double transparency(Point p, Point direction){
-		if(this.reflection>0&&fromOutside(p, direction)){
-			double dot=Math.abs(direction.unit().dot(normal(p).unit()));
-			return Math.pow(dot, 0.5)*this.transparency;
-		}
+//		if(this.reflection>0&&fromOutside(p, direction)){
+//			double dot=Math.abs(direction.unit().dot(normal(p).unit()));
+//			return Math.pow(dot, 0.5)*this.transparency;
+//		}
         return this.transparency;
 	}
 	public double diffusion(Point p, Point direction){
