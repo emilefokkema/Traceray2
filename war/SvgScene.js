@@ -2860,8 +2860,9 @@ var SvgScene=function(){
 					//RectangleFactory.makeRectangle(Point(0,0,0), Point(0,1,0), Color(255,0,0), 0, 1, 0, 1);
 					console.log("finish adding shapes");
 				}
-				var w_=whereSvg.offsetWidth;
-				var h_=whereSvg.offsetHeight;
+				var rect = whereSvg.getBoundingClientRect();
+				var w_=rect.width;
+				var h_=rect.height;
 				svgObject.setWh(w_,h_);
 				viewPort.setWh(w_,h_);
 				Settings.makeResolutionOptions();
