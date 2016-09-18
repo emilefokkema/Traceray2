@@ -118,7 +118,7 @@ scene1.init(document.getElementById("viewPort1"),
     }
   ]
 });
-  document.getElementById("viewPort1").appendChild((function(){
+window.fbButton = (function(){
     var div=document.createElement('div');
     div.setAttribute('class','fb-like');
     div.setAttribute('data-href',(function(loc){
@@ -133,8 +133,17 @@ scene1.init(document.getElementById("viewPort1"),
     div.setAttribute('data-show-faces','false');
     div.setAttribute('data-share','false');
     div.setAttribute('style','position:absolute;left:20px;top:20px');
-    return div;
-  })());
+    return {
+      hide:function(){
+        div.style.display = "none";
+      },
+      show:function(){
+        div.style.display = "initial";
+      },
+      div:div
+    };
+  })();
+  document.getElementById("viewPort1").appendChild(fbButton.div);
     </script>
   </body>
 </html>

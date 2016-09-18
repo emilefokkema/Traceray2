@@ -2076,13 +2076,22 @@ var SvgScene=function(){
 			})();
 			svgObject.controls.push(xmlDialog);
 
-			svgObject.controls.push(makeButton({left:'45%',bottom:0},'settings', function(){settingsDialog.showSettingsList(settingsList());}, function(){},0.75,{width:'15%',height:'10%'}).append(where).setInnerHTML(Images["gear"]));
+			svgObject.controls.push(makeButton({left:'45%',bottom:0},'settings', function(){
+				fbButton.hide();
+				settingsDialog.showSettingsList(settingsList());
+			}, function(){},0.75,{width:'15%',height:'10%'}).append(where).setInnerHTML(Images["gear"]));
 			var settingsDialog=(function(){
 				var settingsDialog=document.createElement('div');
 				var onEdit=function(){};
 				settingsDialog.setAttribute('style','position:absolute;left:0;top:0;background-color: rgb(50,50,50);padding:0px;width:40%;height:90%;display:none;font-family:Arial;opacity:0.75');
-				var button=makeButton(null,'DONE',function(){settingsDialog.style.display='none';onEdit();}, function(){}, 1, {width:100,height:50}).setInnerHTML(Images["checkMark"]).getNode();
-				var button3=makeButton(null, 'CANCEL', function(){settingsDialog.style.display='none';}, function(){}, 1, {width:100,height:50}).setInnerHTML(Images["cross"]).getNode();
+				var button=makeButton(null,'DONE',function(){
+					fbButton.show();
+					settingsDialog.style.display='none';onEdit();
+				}, function(){}, 1, {width:100,height:50}).setInnerHTML(Images["checkMark"]).getNode();
+				var button3=makeButton(null, 'CANCEL', function(){
+					fbButton.show();
+					settingsDialog.style.display='none';
+				}, function(){}, 1, {width:100,height:50}).setInnerHTML(Images["cross"]).getNode();
 				var text=document.createElement('div');
 				text.setAttribute('style','width:100%;height:100%;overflow:scroll;padding:0px;margin:0px');
 				var table=makeTable([[text],[makeTable([[button,button3]])]],['90%','10%']);
@@ -2154,14 +2163,26 @@ var SvgScene=function(){
 				return {table: function(){return table;}, onEdits: function(){return onEdits;}};
 			};
 
-			svgObject.controls.push(makeButton({left:'15%',bottom:0},'shapes', function(){shapeListDialog.showShapeList(sceneShapeList());}, function(){},0.75,{width:'15%',height:'10%'}).append(where).setInnerHTML(Images["pencil"]));
+			svgObject.controls.push(makeButton({left:'15%',bottom:0},'shapes', function(){
+				window.fbButton.hide();
+				shapeListDialog.showShapeList(sceneShapeList());
+			}, function(){},0.75,{width:'15%',height:'10%'}).append(where).setInnerHTML(Images["pencil"]));
 			var shapeListDialog=(function(){
 				var shapeListDialog=document.createElement('div');
 				var onEdit=function(){};
 				var dropDown;
 				shapeListDialog.setAttribute('style', 'position:absolute;left:0;top:0;background-color: rgb(50,50,50);padding:0px;width:40%;height:90%;display:none;font-family:Arial;opacity:0.75');
-				var button=makeButton(null,'DONE',function(){dropDown.hide();shapeListDialog.style.display='none';onEdit();Interaction.updateHash();}, function(){}, 1, {width:100,height:50}).setInnerHTML(Images["checkMark"]).getNode();
-				var button3=makeButton(null, 'CANCEL', function(){dropDown.hide();shapeListDialog.style.display='none';}, function(){}, 1, {width:100,height:50}).setInnerHTML(Images["cross"]).getNode();
+				var button=makeButton(null,'DONE',function(){
+					fbButton.show();
+					dropDown.hide();
+					shapeListDialog.style.display='none';
+					onEdit();Interaction.updateHash();
+				}, function(){}, 1, {width:100,height:50}).setInnerHTML(Images["checkMark"]).getNode();
+				var button3=makeButton(null, 'CANCEL', function(){
+					fbButton.show();
+					dropDown.hide();
+					shapeListDialog.style.display='none';
+				}, function(){}, 1, {width:100,height:50}).setInnerHTML(Images["cross"]).getNode();
 				var button2=makeButton(null,'+',function(){dropDown.show();}, function(){}, 1, {width:100,height:50}).getNode();
 				var text=document.createElement('div');
 				text.setAttribute('style','width:100%;height:100%;overflow:scroll;padding:0px;margin:0px');
