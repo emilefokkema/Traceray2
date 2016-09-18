@@ -6,6 +6,7 @@
 			<xs:element name="group" type="group" minOccurs="0" maxOccurs="unbounded"/>
 			<xs:element name="viewport" type="viewPort" minOccurs="0" maxOccurs="1"/>
 			</xs:sequence>
+			<xs:attribute name="recursionDepth" use="required" type="xs:integer" />
 		</xs:complexType>
 	</xs:element>
 	
